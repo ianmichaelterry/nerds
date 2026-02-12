@@ -1,0 +1,21 @@
+{
+  "item_id": "item_0012",
+  "item_type": "color_analysis",
+  "data": {
+    "key_color": "#0f0f1e",
+    "accent_color": "#ff2a6d",
+    "palette": [
+      "#0f0f1e",
+      "#ff2a6d",
+      "#16213e",
+      "#0f3460",
+      "#e94560"
+    ],
+    "source_image": "sample_movie/stills/still_04.jpg",
+    "analysis_method": "revised_kmeans",
+    "revision_note": "Revised based on critique: genre_mismatch",
+    "revision_number": 2
+  },
+  "source_nerd": "ColorReviserNerd",
+  "timestamp": "2026-02-11T16:54:07.193311"
+}

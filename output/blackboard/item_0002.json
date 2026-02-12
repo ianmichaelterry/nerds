@@ -1,0 +1,85 @@
+{
+  "item_id": "item_0002",
+  "item_type": "movie_metadata",
+  "data": {
+    "title": "Blade Runner 2049",
+    "tagline": "There's still a page left",
+    "genre": "Science Fiction",
+    "sub_genre": "Neo-Noir",
+    "year": 2017,
+    "release_date": "2017-10-06",
+    "runtime_minutes": 164,
+    "director": "Denis Villeneuve",
+    "cinematographer": "Roger Deakins",
+    "production_designer": "Dennis Gassner",
+    "composer": "Benjamin Wallfisch",
+    "main_actors": [
+      {
+        "name": "Ryan Gosling",
+        "character": "Officer K",
+        "billing_order": 1
+      },
+      {
+        "name": "Harrison Ford",
+        "character": "Rick Deckard",
+        "billing_order": 2
+      },
+      {
+        "name": "Ana de Armas",
+        "character": "Joi",
+        "billing_order": 3
+      },
+      {
+        "name": "Sylvia Hoeks",
+        "character": "Luv",
+        "billing_order": 4
+      },
+      {
+        "name": "Robin Wright",
+        "character": "Lieutenant Joshi",
+        "billing_order": 5
+      }
+    ],
+    "supporting_actors": [
+      "Jared Leto",
+      "Dave Bautista",
+      "Carla Juri",
+      "Lennie James"
+    ],
+    "mpaa_rating": "R",
+    "production_companies": [
+      "Alcon Entertainment",
+      "Columbia Pictures",
+      "Warner Bros. Pictures"
+    ],
+    "visual_style_keywords": [
+      "neon-noir",
+      "futuristic",
+      "desaturated",
+      "orange-teal",
+      "volumetric-lighting",
+      "minimalist"
+    ],
+    "color_palette_notes": {
+      "dominant": "desaturated blues and grays",
+      "accent": "warm orange sodium vapor lights",
+      "contrast": "high contrast shadows",
+      "atmosphere": "hazy, polluted, atmospheric"
+    },
+    "key_locations": [
+      "Los Angeles 2049",
+      "Las Vegas wasteland",
+      "Wallace Corporation headquarters",
+      "Junkyard orphanage"
+    ],
+    "thematic_keywords": [
+      "identity",
+      "memory",
+      "what it means to be human",
+      "artificial intelligence",
+      "corporate power"
+    ]
+  },
+  "source_nerd": "ResearchNerd",
+  "timestamp": "2026-02-11T16:54:07.189666"
+}

@@ -1,0 +1,19 @@
+{
+  "item_id": "item_0011",
+  "item_type": "critique",
+  "data": {
+    "target_item": "item_0008",
+    "target_type": "color_analysis",
+    "critiques": [
+      {
+        "issue": "genre_mismatch",
+        "severity": "medium",
+        "message": "Accent color too warm for neo-noir sci-fi aesthetic",
+        "suggestion": "Consider cooler tones or higher contrast"
+      }
+    ],
+    "overall_assessment": "needs_revision"
+  },
+  "source_nerd": "CritiqueNerd",
+  "timestamp": "2026-02-11T16:54:07.192907"
+}

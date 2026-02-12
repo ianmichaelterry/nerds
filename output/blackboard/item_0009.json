@@ -1,0 +1,17 @@
+{
+  "item_id": "item_0009",
+  "item_type": "typography_spec",
+  "data": {
+    "primary_title": "Blade",
+    "secondary_title": "Runner 2049",
+    "key_color": "#0f0f1e",
+    "accent_color": "#1a1a2e",
+    "suggested_typeface": "Eurostile Extended",
+    "typeface_mood": "sci-fi, corporate, technological",
+    "suggested_placement": "lower_third_center",
+    "font_size_primary": 72,
+    "font_size_secondary": 36
+  },
+  "source_nerd": "TypographyNerd",
+  "timestamp": "2026-02-11T16:54:07.192497"
+}

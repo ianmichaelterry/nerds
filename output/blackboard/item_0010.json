@@ -1,0 +1,35 @@
+{
+  "item_id": "item_0010",
+  "item_type": "template_selection",
+  "data": {
+    "template_id": "hero_with_lower_text_v2",
+    "hero_image": "sample_movie/stills/still_04.jpg",
+    "typography_spec": {
+      "primary_title": "Blade",
+      "secondary_title": "Runner 2049",
+      "key_color": "#0f0f1e",
+      "accent_color": "#1a1a2e",
+      "suggested_typeface": "Eurostile Extended",
+      "typeface_mood": "sci-fi, corporate, technological",
+      "suggested_placement": "lower_third_center",
+      "font_size_primary": 72,
+      "font_size_secondary": 36
+    },
+    "layout_blocks": [
+      {
+        "type": "image",
+        "region": "full_background"
+      },
+      {
+        "type": "text",
+        "region": "lower_third_center"
+      }
+    ],
+    "canvas_size": [
+      1200,
+      1800
+    ]
+  },
+  "source_nerd": "TemplateSelectorNerd",
+  "timestamp": "2026-02-11T16:54:07.192699"
+}

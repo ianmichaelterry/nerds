@@ -1,0 +1,59 @@
+{
+  "stills": [
+    {
+      "filename": "still_01.jpg",
+      "path": "stills/still_01.jpg",
+      "dimensions": [2048, 1365],
+      "format": "JPEG",
+      "source": "IMDB - Stephen Vaughan",
+      "description": "Jared Leto as Niander Wallace",
+      "dominant_colors_estimate": ["#1a1a2e", "#16213e", "#0f3460"],
+      "lighting": "dramatic high contrast",
+      "mood": "menacing, corporate power",
+      "composition": "close-up, shallow depth of field"
+    },
+    {
+      "filename": "still_02.jpg",
+      "path": "stills/still_02.jpg",
+      "dimensions": [2048, 854],
+      "format": "JPEG",
+      "source": "IMDB",
+      "description": "Ana de Armas as Joi - holographic companion",
+      "dominant_colors_estimate": ["#e94560", "#ff6b6b", "#1a1a2e"],
+      "lighting": "holographic, ethereal",
+      "mood": "intimate, artificial, longing",
+      "composition": "medium shot, neon lighting"
+    },
+    {
+      "filename": "still_03.jpg",
+      "path": "stills/still_03.jpg",
+      "dimensions": [640, 924],
+      "format": "JPEG",
+      "source": "Reddit - Rutger Hauer tribute",
+      "description": "Roy Batty from original Blade Runner",
+      "dominant_colors_estimate": ["#2d2d2d", "#4a4a4a", "#1a1a1a"],
+      "lighting": "dramatic side lighting",
+      "mood": "melancholic, philosophical",
+      "composition": "portrait, film noir style"
+    },
+    {
+      "filename": "still_04.jpg",
+      "path": "stills/still_04.jpg",
+      "dimensions": [640, 271],
+      "format": "JPEG", 
+      "source": "Reddit - Chronological order",
+      "description": "Timeline graphic from Blade Runner universe",
+      "dominant_colors_estimate": ["#0f0f1e", "#1a1a2e", "#e94560"],
+      "lighting": "graphic design",
+      "mood": "informative, timeline",
+      "composition": "wide horizontal layout"
+    }
+  ],
+  "statistics": {
+    "total_stills": 4,
+    "total_size_mb": 0.98,
+    "aspect_ratios": ["1.5:1", "2.4:1", "0.69:1", "2.36:1"],
+    "min_resolution": [640, 271],
+    "max_resolution": [2048, 1365]
+  }
+}

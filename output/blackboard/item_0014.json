@@ -1,0 +1,12 @@
+{
+  "item_id": "item_0014",
+  "item_type": "completion_decree",
+  "data": {
+    "is_complete": true,
+    "final_output": "rendered_poster",
+    "missing_elements": [],
+    "rationale": "Poster has 3 elements rendered"
+  },
+  "source_nerd": "CompletionNerd",
+  "timestamp": "2026-02-11T16:54:07.202115"
+}

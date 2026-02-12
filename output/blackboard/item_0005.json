@@ -1,0 +1,20 @@
+{
+  "item_id": "item_0005",
+  "item_type": "template_library_query",
+  "data": {
+    "available_templates": 4,
+    "suitable_for_genre": 0,
+    "selected_template": "hero_with_lower_text_v1",
+    "template_data": {
+      "id": "hero_with_lower_text_v1",
+      "canvas_size": [
+        1200,
+        1800
+      ],
+      "blocks": []
+    },
+    "source": "fallback"
+  },
+  "source_nerd": "TemplateArchivistNerd",
+  "timestamp": "2026-02-11T16:54:07.191462"
+}

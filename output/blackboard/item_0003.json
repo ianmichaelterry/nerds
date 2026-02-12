@@ -1,0 +1,11 @@
+{
+  "item_id": "item_0003",
+  "item_type": "movie_still",
+  "data": {
+    "path": "sample_movie/stills/still_04.jpg",
+    "filename": "still_04.jpg",
+    "source": "local_stills_folder"
+  },
+  "source_nerd": "ImageFetcherNerd",
+  "timestamp": "2026-02-11T16:54:07.190508"
+}

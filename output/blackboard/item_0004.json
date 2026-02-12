@@ -1,0 +1,16 @@
+{
+  "item_id": "item_0004",
+  "item_type": "typeface_recommendation",
+  "data": {
+    "primary_typeface": "Eurostile Extended",
+    "category": "geometric-sans",
+    "mood": "sci-fi, corporate, technological",
+    "recommended_for": [
+      "main-title",
+      "character-names"
+    ],
+    "source": "typeface_database"
+  },
+  "source_nerd": "TypefaceArchivistNerd",
+  "timestamp": "2026-02-11T16:54:07.190966"
+}

@@ -1,0 +1,93 @@
+{
+  "typefaces": [
+    {
+      "name": "Eurostile Extended",
+      "category": "geometric-sans",
+      "style": "futuristic",
+      "usage": "primary-titles",
+      "mood": "sci-fi, corporate, technological",
+      "similar_to": ["Microgramma", "Bank Gothic"],
+      "blade_runner_2049_usage": true,
+      "weights_available": ["Regular", "Bold", "Extended"],
+      "recommended_for": ["main-title", "character-names"]
+    },
+    {
+      "name": "Neon Lights",
+      "category": "display",
+      "style": "neon",
+      "usage": "accent-text",
+      "mood": "retro-futuristic, cyberpunk, edgy",
+      "similar_to": ["Las Enter", "Neon Glow"],
+      "blade_runner_2049_usage": false,
+      "weights_available": ["Regular"],
+      "recommended_for": ["taglines", "special-features"]
+    },
+    {
+      "name": "Helvetica Neue",
+      "category": "neo-grotesque",
+      "style": "clean",
+      "usage": "body-text",
+      "mood": "neutral, professional, modern",
+      "similar_to": ["Arial", "Univers"],
+      "blade_runner_2049_usage": false,
+      "weights_available": ["Light", "Regular", "Medium", "Bold"],
+      "recommended_for": ["credits", "billing-block"]
+    },
+    {
+      "name": "Trajan Pro",
+      "category": "serif",
+      "style": "classic",
+      "usage": "epic-titles",
+      "mood": "cinematic, timeless, prestigious",
+      "similar_to": ["Times New Roman", "Cinzel"],
+      "blade_runner_2049_usage": false,
+      "weights_available": ["Regular", "Bold"],
+      "recommended_for": ["main-title-alternative"]
+    },
+    {
+      "name": "Orbitron",
+      "category": "geometric-sans",
+      "style": "futuristic",
+      "usage": "tech-titles",
+      "mood": "space-age, digital, modern",
+      "similar_to": ["Eurostile", "Microgramma"],
+      "blade_runner_2049_usage": false,
+      "weights_available": ["Regular", "Medium", "Bold", "Black"],
+      "recommended_for": ["secondary-titles", "ui-elements"]
+    },
+    {
+      "name": "Blade Runner Movie Font",
+      "category": "custom",
+      "style": "iconic",
+      "usage": "franchise-titles",
+      "mood": "brutalist, industrial, iconic",
+      "similar_to": ["Eurostile Extended"],
+      "blade_runner_2049_usage": true,
+      "weights_available": ["Regular"],
+      "recommended_for": ["franchise-title", "marketing"],
+      "notes": "Custom font designed specifically for the Blade Runner franchise"
+    }
+  ],
+  "pairing_recommendations": [
+    {
+      "primary": "Eurostile Extended",
+      "secondary": "Helvetica Neue",
+      "context": "Standard sci-fi movie poster"
+    },
+    {
+      "primary": "Blade Runner Movie Font",
+      "secondary": "Eurostile Extended", 
+      "context": "Franchise-specific poster"
+    }
+  ],
+  "genre_rules": {
+    "sci-fi": {
+      "preferred": ["Eurostile Extended", "Orbitron", "Bank Gothic"],
+      "avoid": ["serif-classic", "handwritten"]
+    },
+    "neo-noir": {
+      "preferred": ["Eurostile Extended", " condensed sans-serif"],
+      "avoid": ["playful", "decorative"]
+    }
+  }
+}

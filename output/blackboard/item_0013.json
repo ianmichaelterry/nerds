@@ -1,0 +1,18 @@
+{
+  "item_id": "item_0013",
+  "item_type": "rendered_poster",
+  "data": {
+    "canvas_size": [
+      1200,
+      1800
+    ],
+    "template_used": "hero_with_lower_text_v2",
+    "elements_rendered": [
+      "title",
+      "typography",
+      "placeholder_image"
+    ]
+  },
+  "source_nerd": "CompositorNerd",
+  "timestamp": "2026-02-11T16:54:07.201678"
+}

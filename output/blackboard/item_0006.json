@@ -1,0 +1,25 @@
+{
+  "item_id": "item_0006",
+  "item_type": "color_reference",
+  "data": {
+    "reference_source": "color_reference.json",
+    "palette_name": "Blade Runner 2049 Official",
+    "key_color": "#0f0f1e",
+    "accent_color": "#1a1a2e",
+    "full_palette": [
+      "#0f0f1e",
+      "#1a1a2e",
+      "#16213e",
+      "#0f3460",
+      "#e94560",
+      "#ff6b6b",
+      "#f4a261",
+      "#e76f51",
+      "#2a9d8f",
+      "#264653"
+    ],
+    "color_count": 10
+  },
+  "source_nerd": "ColorPaletteNerd",
+  "timestamp": "2026-02-11T16:54:07.191883"
+}

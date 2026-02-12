@@ -1,0 +1,25 @@
+{
+  "item_id": "item_0008",
+  "item_type": "color_analysis",
+  "data": {
+    "key_color": "#0f0f1e",
+    "accent_color": "#1a1a2e",
+    "palette": [
+      "#0f0f1e",
+      "#1a1a2e",
+      "#16213e",
+      "#0f3460",
+      "#e94560",
+      "#ff6b6b",
+      "#f4a261",
+      "#e76f51",
+      "#2a9d8f",
+      "#264653"
+    ],
+    "source_image": "sample_movie/stills/still_04.jpg",
+    "analysis_method": "from_official_palette_reference",
+    "reference_used": "Blade Runner 2049 Official"
+  },
+  "source_nerd": "ColorAnalyzerNerd",
+  "timestamp": "2026-02-11T16:54:07.192283"
+}

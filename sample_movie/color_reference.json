@@ -1,0 +1,93 @@
+{
+  "color_palettes": {
+    "official_movie_palette": {
+      "name": "Blade Runner 2049 Official",
+      "source": "Movie production design",
+      "colors": [
+        {"hex": "#0f0f1e", "name": "Deep Space Blue", "usage": "backgrounds, shadows"},
+        {"hex": "#1a1a2e", "name": "Midnight Navy", "usage": "primary background"},
+        {"hex": "#16213e", "name": "Navy Blue", "usage": "secondary background"},
+        {"hex": "#0f3460", "name": "Deep Azure", "usage": "highlights, water"},
+        {"hex": "#e94560", "name": "Neon Coral", "usage": "accents, Joi hologram"},
+        {"hex": "#ff6b6b", "name": "Warm Neon", "usage": "lights, warnings"},
+        {"hex": "#f4a261", "name": "Sodium Vapor", "usage": "street lights, warmth"},
+        {"hex": "#e76f51", "name": "Burnt Orange", "usage": "Las Vegas scenes"},
+        {"hex": "#2a9d8f", "name": "Teal Accent", "usage": "complementary accent"},
+        {"hex": "#264653", "name": "Desaturated Teal", "usage": "subtle backgrounds"}
+      ],
+      "dominant_ratio": {
+        "blues": 60,
+        "oranges": 25,
+        "neutrals": 15
+      }
+    },
+    "joi_hologram": {
+      "name": "Joi Holographic",
+      "source": "Character hologram scenes",
+      "colors": [
+        {"hex": "#ff006e", "name": "Magenta Core", "usage": "Joi's signature"},
+        {"hex": "#8338ec", "name": "Purple Glow", "usage": "holographic edges"},
+        {"hex": "#3a86ff", "name": "Digital Blue", "usage": "interface elements"},
+        {"hex": "#ffffff", "name": "Pure White", "usage": "highlights, transparency"}
+      ]
+    },
+    "las_vegas_wasteland": {
+      "name": "Las Vegas Wasteland",
+      "source": "Casino/Desert scenes",
+      "colors": [
+        {"hex": "#d4a373", "name": "Desert Sand", "usage": "ground, dust"},
+        {"hex": "#faedcd", "name": "Pale Yellow", "usage": "haze, atmosphere"},
+        {"hex": "#e9edc9", "name": "Muted Cream", "usage": "old buildings"},
+        {"hex": "#606c38", "name": "Olive Drab", "usage": "rust, decay"}
+      ]
+    },
+    "wallace_corporation": {
+      "name": "Wallace Corp",
+      "source": "Corporate headquarters",
+      "colors": [
+        {"hex": "#000000", "name": "Pure Black", "usage": "void, water"},
+        {"hex": "#14213d", "name": "Dark Navy", "usage": "walls, architecture"},
+        {"hex": "#fca311", "name": "Amber Light", "usage": "Wallace branding"},
+        {"hex": "#e5e5e5", "name": "Off White", "usage": "contrast elements"}
+      ]
+    }
+  },
+  "rules": {
+    "genre_coherence": {
+      "neo-noir": {
+        "preferred": ["high_contrast", "desaturated", "selective_color"],
+        "avoid": ["pastels", "high_saturation"]
+      },
+      "sci-fi": {
+        "preferred": ["neon_accents", "cool_temperatures", "futuristic_metallics"],
+        "avoid": ["earthy_tones", "warm_browns"]
+      }
+    },
+    "readability": {
+      "text_on_dark": {
+        "minimum_contrast": 4.5,
+        "preferred": ["white", "light_neons", "bright_accents"]
+      },
+      "text_on_light": {
+        "minimum_contrast": 4.5,
+        "preferred": ["dark_blues", "black"]
+      }
+    }
+  },
+  "extraction_methods": {
+    "k_means": {
+      "description": "Cluster similar colors",
+      "parameters": {
+        "k": 5,
+        "iterations": 10
+      }
+    },
+    "dominant": {
+      "description": "Most frequent colors",
+      "parameters": {
+        "count": 5,
+        "quality": 10
+      }
+    }
+  }
+}
