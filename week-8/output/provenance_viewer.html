@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NERDS Provenance Viewer</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0d0d;
+    --surface:   #161616;
+    --surface2:  #1e1e1e;
+    --border:    #2a2a2a;
+    --text:      #e0ddd5;
+    --text-dim:  #8a8780;
+    --accent:    #c9a84c;       /* gold */
+    --ns-nerds:  #c9a84c;      /* gold */
+    --ns-prov:   #6ec4e8;      /* ice blue */
+    --ns-skos:   #b88be5;      /* lavender */
+    --ns-schema: #e87d6e;      /* coral */
+    --ns-dcterms:#78c98e;      /* mint */
+    --ns-rdfs:   #e8b86e;      /* amber */
+    --ns-xsd:    #8a8780;      /* dim */
+    --ns-rdf:    #5e9dc8;      /* steel */
+    --ns-other:  #c0b89a;      /* sand */
+    --radius:    6px;
+  }
+
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', Menlo, Monaco, Consolas, monospace;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  /* ── Drop Zone (initial state) ────────────────────────── */
+  #drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    transition: background 0.25s;
+  }
+  #drop-zone.drag-over {
+    background: rgba(201, 168, 76, 0.06);
+  }
+  #drop-zone.has-data {
+    min-height: auto;
+    padding: 24px 0;
+  }
+
+  #drop-prompt {
+    text-align: center;
+    padding: 64px 24px;
+  }
+  #drop-prompt h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #drop-prompt .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 40px;
+  }
+  #drop-prompt .drop-icon {
+    font-size: 48px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+  #drop-prompt .instruction {
+    font-size: 15px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  #drop-prompt .instruction strong {
+    color: var(--text);
+  }
+  #drop-prompt .or-divider {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 16px 0;
+  }
+
+  #file-input { display: none; }
+  #file-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 10px 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  #file-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* ── Viewer (after load) ──────────────────────────────── */
+  #viewer {
+    display: none;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 60px;
+  }
+
+  /* Header */
+  #viewer-header {
+    text-align: center;
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  #viewer-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  #viewer-header .filename {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+  #load-another {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 4px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  #load-another:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Summary Panel */
+  #summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+  .stat-card .stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+
+  /* Prefixes Panel */
+  #prefixes-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  #prefixes-toggle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  #prefixes-toggle:hover { color: var(--text); }
+  #prefixes-toggle .arrow {
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform 0.2s;
+    font-size: 10px;
+  }
+  #prefixes-toggle .arrow.open { transform: rotate(90deg); }
+  #prefixes-content {
+    display: none;
+    padding: 0 16px 14px;
+  }
+  #prefixes-content.open { display: block; }
+  .prefix-row {
+    display: flex;
+    align-items: baseline;
+    padding: 3px 0;
+    font-size: 13px;
+  }
+  .prefix-name {
+    font-weight: 600;
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+  .prefix-uri {
+    color: var(--text-dim);
+    font-size: 12px;
+    word-break: break-all;
+  }
+
+  /* Controls bar */
+  #controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .ctrl-btn {
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  #search-box {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    outline: none;
+    flex: 1;
+    min-width: 180px;
+    transition: border-color 0.2s;
+  }
+  #search-box::placeholder { color: var(--text-dim); }
+  #search-box:focus { border-color: var(--accent); }
+
+  /* Subject Groups */
+  .subject-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .subject-group:hover { border-color: #3a3a3a; }
+  .subject-group.hidden { display: none; }
+
+  .subject-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+    gap: 10px;
+  }
+  .subject-header:hover { background: var(--surface2); }
+
+  .subject-header .arrow {
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+    width: 12px;
+    text-align: center;
+  }
+  .subject-header .arrow.open { transform: rotate(90deg); }
+
+  .subject-name {
+    font-size: 14px;
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .subject-badges {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .badge-type { border-color: var(--ns-prov); color: var(--ns-prov); }
+  .triple-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .subject-body {
+    display: none;
+    padding: 0 16px 12px 38px;
+  }
+  .subject-body.open { display: block; }
+
+  .triple-row {
+    display: flex;
+    align-items: baseline;
+    padding: 4px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    gap: 12px;
+  }
+  .triple-row:last-child { border-bottom: none; }
+
+  .pred {
+    min-width: 180px;
+    max-width: 240px;
+    flex-shrink: 0;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .obj {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+    color: var(--text);
+  }
+
+  .obj .literal {
+    color: #a8c77a;
+  }
+  .obj .literal .datatype {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+  .obj .literal .lang-tag {
+    color: var(--ns-skos);
+    font-size: 11px;
+  }
+
+  /* URI links */
+  a.uri-link {
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  a.uri-link:hover { opacity: 0.75; text-decoration: underline; }
+
+  /* Namespace coloring – applied via data-ns attribute */
+  [data-ns="nerds"]  { color: var(--ns-nerds); }
+  [data-ns="prov"]   { color: var(--ns-prov); }
+  [data-ns="skos"]   { color: var(--ns-skos); }
+  [data-ns="schema"] { color: var(--ns-schema); }
+  [data-ns="dcterms"]{ color: var(--ns-dcterms); }
+  [data-ns="rdfs"]   { color: var(--ns-rdfs); }
+  [data-ns="xsd"]    { color: var(--ns-xsd); }
+  [data-ns="rdf"]    { color: var(--ns-rdf); }
+  [data-ns="other"]  { color: var(--ns-other); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .pred { min-width: 100px; max-width: 140px; }
+    .subject-name { font-size: 12px; }
+    #summary { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Drop Zone / Landing ────────────────────────────── -->
+<div id="drop-zone">
+  <div id="drop-prompt">
+    <h1>NERDS Provenance Viewer</h1>
+    <div class="subtitle">RDF Turtle Graph Inspector</div>
+    <div class="drop-icon">&#9671;</div>
+    <div class="instruction">Drop a <strong>.ttl</strong> file here</div>
+    <div class="or-divider">&#8212; or &#8212;</div>
+    <input type="file" id="file-input" accept=".ttl,.turtle,text/turtle">
+    <button id="file-btn" onclick="document.getElementById('file-input').click()">Choose File</button>
+  </div>
+</div>
+
+<!-- ── Viewer ─────────────────────────────────────────── -->
+<div id="viewer">
+  <div id="viewer-header">
+    <h1>NERDS Provenance Viewer</h1>
+    <div class="filename" id="filename-display"></div>
+    <button id="load-another">Load Another</button>
+  </div>
+
+  <div id="summary"></div>
+
+  <div id="prefixes-panel">
+    <button id="prefixes-toggle">
+      <span class="arrow">&#9654;</span> Prefix Declarations
+    </button>
+    <div id="prefixes-content"></div>
+  </div>
+
+  <div id="controls">
+    <button class="ctrl-btn" id="expand-all">Expand All</button>
+    <button class="ctrl-btn" id="collapse-all">Collapse All</button>
+    <input type="text" id="search-box" placeholder="Filter subjects...">
+  </div>
+
+  <div id="subjects-container"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  Turtle Parser – line-oriented approach
+//  Works on the subset produced by rdflib serializer
+// ══════════════════════════════════════════════════════════
+
+function parseTurtle(text) {
+  const prefixes = {};
+  const triples = [];
+
+  text = text.replace(/\r\n?/g, '\n');
+
+  // ── Phase 1: extract prefixes ──
+  const prefixRe = /@prefix\s+(\w*):\s*<([^>]+)>\s*\./g;
+  let m;
+  while ((m = prefixRe.exec(text)) !== null) prefixes[m[1]] = m[2];
+  const prefixRe2 = /PREFIX\s+(\w*):\s*<([^>]+)>/gi;
+  while ((m = prefixRe2.exec(text)) !== null) prefixes[m[1]] = m[2];
+
+  // ── Phase 2: tokenize character-by-character ──
+  function tokenize(src) {
+    const tokens = [];
+    let i = 0;
+    const len = src.length;
+
+    function skipWS() {
+      while (i < len) {
+        if (src[i] === '#') { while (i < len && src[i] !== '\n') i++; continue; }
+        if (/\s/.test(src[i])) { i++; continue; }
+        break;
+      }
+    }
+
+    while (i < len) {
+      skipWS();
+      if (i >= len) break;
+
+      // @prefix / @base – skip entire directive (must handle <IRI> with dots inside)
+      if (src[i] === '@') {
+        while (i < len) {
+          if (src[i] === '<') {
+            // Skip entire IRI including dots
+            while (i < len && src[i] !== '>') i++;
+            if (i < len) i++; // skip '>'
+          } else if (src[i] === '.') {
+            i++; // consume the terminating '.'
+            break;
+          } else {
+            i++;
+          }
+        }
+        continue;
+      }
+
+      // IRI <...>
+      if (src[i] === '<') {
+        let j = i + 1;
+        while (j < len && src[j] !== '>') j++;
+        tokens.push({ type: 'IRI', value: src.substring(i + 1, j) });
+        i = j + 1;
+        continue;
+      }
+
+      // Triple-quoted string """..."""
+      if (i + 2 < len && src[i] === '"' && src[i+1] === '"' && src[i+2] === '"') {
+        let j = i + 3;
+        while (j + 2 < len && !(src[j] === '"' && src[j+1] === '"' && src[j+2] === '"')) j++;
+        const strVal = src.substring(i + 3, j);
+        j += 3;
+        const suffix = readLiteralSuffix(src, j);
+        j = suffix.end;
+        tokens.push({ type: 'LITERAL', value: strVal, datatype: suffix.datatype, lang: suffix.lang });
+        i = j;
+        continue;
+      }
+
+      // String "..."
+      if (src[i] === '"') {
+        let j = i + 1;
+        let s = '';
+        while (j < len) {
+          if (src[j] === '\\' && j + 1 < len) { s += src[j] + src[j+1]; j += 2; continue; }
+          if (src[j] === '"') break;
+          s += src[j]; j++;
+        }
+        j++; // skip closing "
+        const suffix = readLiteralSuffix(src, j);
+        j = suffix.end;
+        tokens.push({ type: 'LITERAL', value: s, datatype: suffix.datatype, lang: suffix.lang });
+        i = j;
+        continue;
+      }
+
+      // Punctuation
+      if (src[i] === ';') { tokens.push({ type: 'SEMI' }); i++; continue; }
+      if (src[i] === ',') { tokens.push({ type: 'COMMA' }); i++; continue; }
+      if (src[i] === '[') { tokens.push({ type: 'LBRACKET' }); i++; continue; }
+      if (src[i] === ']') { tokens.push({ type: 'RBRACKET' }); i++; continue; }
+
+      // '.' as statement terminator (not inside a number)
+      if (src[i] === '.') {
+        const prev = i > 0 ? src[i - 1] : ' ';
+        const next = i + 1 < len ? src[i + 1] : ' ';
+        // If preceded by a digit and followed by a digit, it's a decimal
+        if (/\d/.test(prev) && /\d/.test(next)) {
+          // Fall through to PNAME/word
+        } else {
+          tokens.push({ type: 'DOT' });
+          i++;
+          continue;
+        }
+      }
+
+      // PNAME (prefixed name) or keyword or number or boolean
+      {
+        let j = i;
+        while (j < len) {
+          const c = src[j];
+          if (/[\s;,\[\]"<>#]/.test(c)) break;
+          if (c === '.' && j + 1 < len && /[\s;,\[\]"<>#]/.test(src[j + 1])) break;
+          if (c === '.' && j + 1 >= len) break;
+          j++;
+        }
+        const word = src.substring(i, j);
+        if (word.length > 0) {
+          // Detect number
+          if (/^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(word)) {
+            tokens.push({ type: 'LITERAL', value: word, datatype: '', lang: '' });
+          } else if (word === 'true' || word === 'false') {
+            tokens.push({ type: 'LITERAL', value: word, datatype: 'xsd:boolean', lang: '' });
+          } else if (word === 'a') {
+            tokens.push({ type: 'PNAME', value: 'rdf:type' });
+          } else {
+            tokens.push({ type: 'PNAME', value: word });
+          }
+          i = j;
+        } else {
+          i++; // skip unknown
+        }
+      }
+    }
+    return tokens;
+  }
+
+  function readLiteralSuffix(src, j) {
+    let datatype = '', lang = '';
+    if (j < src.length && src[j] === '^' && j + 1 < src.length && src[j + 1] === '^') {
+      j += 2;
+      if (j < src.length && src[j] === '<') {
+        let end = src.indexOf('>', j);
+        if (end !== -1) { datatype = src.substring(j + 1, end); j = end + 1; }
+      } else {
+        let start = j;
+        while (j < src.length && !/[\s;,.\[\]"<>#]/.test(src[j])) j++;
+        datatype = src.substring(start, j);
+      }
+    } else if (j < src.length && src[j] === '@') {
+      j++;
+      let start = j;
+      while (j < src.length && /[a-zA-Z0-9-]/.test(src[j])) j++;
+      lang = src.substring(start, j);
+    }
+    return { end: j, datatype, lang };
+  }
+
+  const tokens = tokenize(text);
+
+  // ── Phase 3: build triples ──
+  let subject = null, predicate = null;
+  let state = 'S'; // S=subject, P=predicate, O=object
+
+  function termStr(tok) {
+    if (tok.type === 'IRI') return tok.value;
+    if (tok.type === 'PNAME') return tok.value;
+    if (tok.type === 'LITERAL') {
+      let s = '"' + tok.value + '"';
+      if (tok.datatype) s += '^^' + tok.datatype;
+      if (tok.lang) s += '@' + tok.lang;
+      return s;
+    }
+    return '';
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (t.type === 'DOT') { state = 'S'; continue; }
+    if (t.type === 'SEMI') { if (state === 'P' || state === 'O') state = 'P'; continue; }
+    if (t.type === 'COMMA') { if (state === 'O') state = 'O'; continue; }
+
+    if (state === 'S') {
+      subject = termStr(t);
+      state = 'P';
+    } else if (state === 'P') {
+      predicate = termStr(t);
+      state = 'O';
+    } else if (state === 'O') {
+      triples.push({ subject, predicate, object: termStr(t) });
+      // Stay in O state; next ; or , or . will adjust
+    }
+  }
+
+  return { prefixes, triples };
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  Rendering
+// ══════════════════════════════════════════════════════════
+
+const nsColorMap = {
+  nerds: 'nerds', prov: 'prov', skos: 'skos',
+  schema: 'schema', schema1: 'schema',
+  dcterms: 'dcterms', rdfs: 'rdfs', xsd: 'xsd', rdf: 'rdf'
+};
+
+function detectNs(value, prefixes) {
+  // Check if it uses a known prefix
+  for (const [pfx, iri] of Object.entries(prefixes)) {
+    const key = nsColorMap[pfx] || pfx;
+    if (value.startsWith(pfx + ':')) return key;
+    if (value.startsWith(iri)) return key;
+  }
+  if (value.startsWith('rdf:')) return 'rdf';
+  return 'other';
+}
+
+function compactUri(uri, prefixes) {
+  for (const [pfx, iri] of Object.entries(prefixes)) {
+    if (uri.startsWith(iri)) {
+      return pfx + ':' + uri.slice(iri.length);
+    }
+  }
+  return uri;
+}
+
+function isLiteral(value) {
+  return value.startsWith('"');
+}
+
+function isUri(value) {
+  return !isLiteral(value) && (value.includes(':') || value.startsWith('http'));
+}
+
+function renderValue(value, prefixes) {
+  if (isLiteral(value)) {
+    return renderLiteral(value);
+  }
+  // It's a URI (prefixed or full)
+  const ns = detectNs(value, prefixes);
+  const compact = value.startsWith('http') ? compactUri(value, prefixes) : value;
+  const fullUri = expandUri(compact, prefixes);
+  if (fullUri.startsWith('http')) {
+    return `<a class="uri-link" data-ns="${esc(ns)}" href="${esc(fullUri)}" target="_blank" title="${esc(fullUri)}">${esc(compact)}</a>`;
+  }
+  return `<span data-ns="${esc(ns)}">${esc(compact)}</span>`;
+}
+
+function expandUri(compact, prefixes) {
+  const colon = compact.indexOf(':');
+  if (colon > 0) {
+    const pfx = compact.substring(0, colon);
+    if (prefixes[pfx]) {
+      return prefixes[pfx] + compact.substring(colon + 1);
+    }
+  }
+  // Handle rdf:type which might not be in prefixes
+  if (compact === 'rdf:type') return 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+  return compact;
+}
+
+function renderLiteral(value) {
+  let text = value;
+  let datatype = '';
+  let lang = '';
+
+  // Extract lang tag
+  const langMatch = text.match(/"@([a-zA-Z-]+)$/);
+  if (langMatch) {
+    lang = langMatch[1];
+    text = text.slice(0, text.length - langMatch[0].length + 1);
+  }
+
+  // Extract datatype
+  const dtMatch = text.match(/"\^\^(.+)$/);
+  if (dtMatch) {
+    datatype = dtMatch[1];
+    text = text.slice(0, text.length - dtMatch[0].length + 1);
+  }
+
+  // Remove surrounding quotes
+  if (text.startsWith('"""') && text.endsWith('"""')) {
+    text = text.slice(3, -3);
+  } else if (text.startsWith('"') && text.endsWith('"')) {
+    text = text.slice(1, -1);
+  }
+
+  // Truncate very long values (like base64)
+  let displayText = text;
+  let truncated = false;
+  if (displayText.length > 120) {
+    displayText = displayText.substring(0, 120);
+    truncated = true;
+  }
+
+  let html = `<span class="literal">"${esc(displayText)}${truncated ? '…' : ''}"`;
+  if (datatype) {
+    const dtClean = datatype.startsWith('<') ? datatype.slice(1, -1) : datatype;
+    html += `<span class="datatype">^^${esc(dtClean)}</span>`;
+  }
+  if (lang) {
+    html += `<span class="lang-tag">@${esc(lang)}</span>`;
+  }
+  html += '</span>';
+  return html;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderGraph(parsed, filename) {
+  const { prefixes, triples } = parsed;
+
+  // Show viewer, update header
+  document.getElementById('drop-prompt').style.display = 'none';
+  document.getElementById('drop-zone').classList.add('has-data');
+  document.getElementById('viewer').style.display = 'block';
+  document.getElementById('filename-display').textContent = filename;
+
+  // ── Summary ──
+  const subjects = new Set(triples.map(t => t.subject));
+  const predicates = new Set(triples.map(t => t.predicate));
+  const namespaces = Object.keys(prefixes);
+
+  document.getElementById('summary').innerHTML = [
+    { value: triples.length, label: 'Triples' },
+    { value: subjects.size, label: 'Subjects' },
+    { value: predicates.size, label: 'Predicates' },
+    { value: namespaces.length, label: 'Namespaces' },
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-value">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+  `).join('');
+
+  // ── Prefixes ──
+  const prefContent = document.getElementById('prefixes-content');
+  prefContent.innerHTML = namespaces.sort().map(pfx => {
+    const ns = nsColorMap[pfx] || 'other';
+    return `<div class="prefix-row">
+      <span class="prefix-name" data-ns="${esc(ns)}">${esc(pfx)}:</span>
+      <span class="prefix-uri">&lt;${esc(prefixes[pfx])}&gt;</span>
+    </div>`;
+  }).join('');
+
+  // ── Group triples by subject ──
+  const groups = new Map();
+  for (const t of triples) {
+    if (!groups.has(t.subject)) groups.set(t.subject, []);
+    groups.get(t.subject).push(t);
+  }
+
+  // Sort: entities/activities before concepts, then alphabetically
+  const sortedSubjects = [...groups.keys()].sort((a, b) => {
+    // Items first, then activities, then agents, then concepts
+    const order = (s) => {
+      if (s.includes('item_')) return 0;
+      if (s.includes('activity_')) return 1;
+      if (s.includes('agent_')) return 2;
+      return 3;
+    };
+    const oa = order(a), ob = order(b);
+    if (oa !== ob) return oa - ob;
+    return a.localeCompare(b);
+  });
+
+  const container = document.getElementById('subjects-container');
+  container.innerHTML = '';
+
+  for (const subj of sortedSubjects) {
+    const tripleList = groups.get(subj);
+    const ns = detectNs(subj, prefixes);
+    const compact = subj.startsWith('http') ? compactUri(subj, prefixes) : subj;
+
+    // Detect rdf:type badge
+    const typeTriple = tripleList.find(t => t.predicate === 'rdf:type');
+    let typeBadge = '';
+    if (typeTriple) {
+      const typeCompact = typeTriple.object.startsWith('http')
+        ? compactUri(typeTriple.object, prefixes) : typeTriple.object;
+      const typeNs = detectNs(typeTriple.object, prefixes);
+      typeBadge = `<span class="badge badge-type" data-ns="${esc(typeNs)}" style="border-color: var(--ns-${esc(typeNs)}); color: var(--ns-${esc(typeNs)})">${esc(typeCompact)}</span>`;
+    }
+
+    // Build predicate-object rows (skip rdf:type since it's shown as badge)
+    const rows = tripleList
+      .filter(t => t.predicate !== 'rdf:type')
+      .map(t => {
+        const predNs = detectNs(t.predicate, prefixes);
+        const predCompact = t.predicate.startsWith('http')
+          ? compactUri(t.predicate, prefixes) : t.predicate;
+        return `<div class="triple-row">
+          <span class="pred" data-ns="${esc(predNs)}" title="${esc(t.predicate)}">${esc(predCompact)}</span>
+          <span class="obj">${renderValue(t.object, prefixes)}</span>
+        </div>`;
+      }).join('');
+
+    const groupEl = document.createElement('div');
+    groupEl.className = 'subject-group';
+    groupEl.dataset.subject = compact.toLowerCase();
+    groupEl.innerHTML = `
+      <div class="subject-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span>
+        <span class="subject-name" data-ns="${esc(ns)}">${esc(compact)}</span>
+        <span class="subject-badges">${typeBadge}</span>
+        <span class="triple-count">${tripleList.length}</span>
+      </div>
+      <div class="subject-body">${rows}</div>
+    `;
+    container.appendChild(groupEl);
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  Interaction
+// ══════════════════════════════════════════════════════════
+
+function toggleGroup(headerEl) {
+  const arrow = headerEl.querySelector('.arrow');
+  const body = headerEl.nextElementSibling;
+  arrow.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function expandAll() {
+  document.querySelectorAll('.subject-group').forEach(g => {
+    if (g.classList.contains('hidden')) return;
+    g.querySelector('.arrow').classList.add('open');
+    g.querySelector('.subject-body').classList.add('open');
+  });
+}
+
+function collapseAll() {
+  document.querySelectorAll('.subject-group').forEach(g => {
+    g.querySelector('.arrow').classList.remove('open');
+    g.querySelector('.subject-body').classList.remove('open');
+  });
+}
+
+function filterSubjects(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.subject-group').forEach(g => {
+    if (!q) {
+      g.classList.remove('hidden');
+      return;
+    }
+    const text = g.dataset.subject + ' ' + g.innerHTML.toLowerCase();
+    g.classList.toggle('hidden', !text.includes(q));
+  });
+}
+
+// ── Event wiring ──
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  // Drag and drop
+  ['dragenter', 'dragover'].forEach(evt => {
+    document.body.addEventListener(evt, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    document.body.addEventListener(evt, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('drag-over');
+    });
+  });
+  document.body.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file);
+  });
+
+  // File picker
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) loadFile(file);
+  });
+
+  // Load another
+  document.getElementById('load-another').addEventListener('click', () => {
+    fileInput.value = '';
+    fileInput.click();
+  });
+
+  // Prefix toggle
+  document.getElementById('prefixes-toggle').addEventListener('click', function() {
+    this.querySelector('.arrow').classList.toggle('open');
+    document.getElementById('prefixes-content').classList.toggle('open');
+  });
+
+  // Controls
+  document.getElementById('expand-all').addEventListener('click', expandAll);
+  document.getElementById('collapse-all').addEventListener('click', collapseAll);
+  document.getElementById('search-box').addEventListener('input', e => {
+    filterSubjects(e.target.value);
+  });
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = parseTurtle(e.target.result);
+      renderGraph(parsed, file.name);
+    } catch (err) {
+      alert('Error parsing Turtle file: ' + err.message);
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+}
+</script>
+</body>
+</html>
