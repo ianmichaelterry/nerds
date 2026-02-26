@@ -1,0 +1,686 @@
+
+---
+# Blade Runner — rollout 1/2
+
+# Blackboard Design Session: Blade Runner (1982)
+
+---
+
+TICK 1: MoviePicker
+  READS: NOTHING
+  WRITES: movie_seed = 
+    title: "Blade Runner"
+    genre: sci-fi
+    subgenre: neo-noir
+    year: 1982
+    tagline: "Man has made his match... now it's his problem."
+    director: Ridley Scott
+    actors: [Harrison Ford, Rutger Hauer]
+    mood_keywords: [dystopian, rain-soaked, neon, existential, urban-decay]
+    heat: HOT
+  RATIONALE: Seeds the blackboard with all source metadata so downstream specialists have a complete, authoritative reference point.
+
+---
+
+TICK 2: GenrePalette
+  READS: movie_seed -> genre=sci-fi/neo-noir, mood_keywords=[dystopian, rain-soaked, neon, urban-decay]
+  WRITES: color_palette =
+    name: "Neon Dusk"
+    background: "#0A0A12"
+    primary_accent: "#E8430A"
+    secondary_accent: "#1ECBE1"
+    tertiary_accent: "#C47FD5"
+    highlight: "#F5D76E"
+    shadow: "#050508"
+    text_primary: "#E8E0D0"
+    text_secondary: "#8899AA"
+    rationale_note: "Deep near-black base; electric cyan and amber-orange neon glow for rain-reflected street light; violet for smog haze; warm ivory for title text"
+    heat: HOT
+  RATIONALE: Neo-noir sci-fi demands a palette built on near-blackness punctuated by neon warm and cool tones, directly evoking Los Angeles 2019's acid-rain streetscapes.
+
+---
+
+TICK 3: TitleParser
+  READS: movie_seed -> title="Blade Runner", tagline="Man has made his match... now it's his problem.", actors=[Harrison Ford, Rutger Hauer], director=Ridley Scott
+  WRITES: title_layout =
+    primary_line:
+      text: "BLADE"
+      role: dominant_word
+      weight: ultra_heavy
+      tracking: 0.18em
+    secondary_line:
+      text: "RUNNER"
+      role: dominant_word
+      weight: ultra_heavy
+      tracking: 0.18em
+    tagline:
+      text: "Man has made his match... now it's his problem."
+      role: tagline
+      weight: light
+      tracking: 0.06em
+    credits_block:
+      director_line: "A RIDLEY SCOTT FILM"
+      cast_line: "HARRISON FORD  RUTGER HAUER"
+      production_line: "WARNER BROS. · 1982"
+    heat: HOT
+  RATIONALE: Splitting BLADE and RUNNER onto separate lines of equal visual weight creates a stacked monolith that anchors the vertical composition and references the original theatrical treatment.
+
+---
+
+TICK 4: TypefacePicker
+  READS: color_palette -> text_primary="#E8E0D0", title_layout -> weight=ultra_heavy, tracking=0.18em, genre=sci-fi/neo-noir
+  WRITES: typeface_spec =
+    title_font:
+      family: "Eurostile Extended Bold"
+      style: "condensed uppercase geometric sans"
+      size_primary: 112pt
+      color: "#E8E0D0"
+      text_shadow: "0px 0px 18px #E8430A"
+      letter_spacing: "0.18em"
+    tagline_font:
+      family: "Futura PT Light"
+      size: 14pt
+      color: "#8899AA"
+      letter_spacing: "0.06em"
+    credits_font:
+      family: "Futura PT Book"
+      size: 9pt
+      color: "#8899AA"
+      letter_spacing: "0.12em"
+      case: uppercase
+    heat: HOT
+  RATIONALE: Eurostile Extended is the quintessential cold-machine-age sans-serif, immediately signaling industrial futurity, while Futura's geometric neutrality keeps supporting text legible without competing with the hero title.
+
+---
+
+TICK 5: LayoutPicker
+  READS: title_layout -> primary/secondary lines stacked, credits_block; color_palette -> background="#0A0A12"; typeface_spec -> title 112pt stacked
+  WRITES: layout_template =
+    canvas:
+      width_px: 2000
+      height_px: 3000
+      aspect_ratio: "2:3 (standard theatrical one-sheet)"
+    zones:
+      sky_zone:
+        y_range: [0, 900]
+        description: "Upper third — smoggy violet-amber skyline with distant megastructure pyramids"
+      hero_zone:
+        y_range: [600, 2100]
+        description: "Centre mass — full-silhouette figure of Deckard, trench coat, weapon raised; rain streaks overlay"
+      neon_reflection_zone:
+        y_range: [1800, 2400]
+        description: "Lower mid — wet street surface reflecting neon cyan and orange verticals as distorted pillars"
+      title_zone:
+        y_range: [2050, 2350]
+        description: "BLADE stacked above RUNNER, horizontally centred, sitting over the reflection zone"
+        x_anchor: centre
+      tagline_zone:
+        y_range: [2370, 2430]
+        x_anchor: centre
+      credits_zone:
+        y_range: [2870, 2960]
+        x_anchor: centre
+    compositional_rule: "Silhouette figure bleeds into title block; eye travels top-to-bottom: sky → figure → neon street → title → tagline → credits"
+    heat: HOT
+  RATIONALE: A portrait silhouette-over-title layout is the canonical noir one-sheet grammar — placing the figure above the title zone ensures the human (or replicant) drama dominates before the brand identity anchors the lower third.
+
+---
+
+TICK 6: HeroImageGen
+  READS: layout_template -> zones (sky_zone, hero_zone, neon_reflection_zone); color_palette -> background="#0A0A12", primary_accent="#E8430A", secondary_accent="#1ECBE1", tertiary_accent="#C47FD5"; mood_keywords=[dystopian, rain-soaked, neon, existential]
+  WRITES: hero_image_spec =
+    sky_layer:
+      gradient: "vertical linear from #1A0E2A (top) to #2E1A08 (horizon)"
+      elements:
+        - type: megastructure_pyramid
+          position: [x=1400, y=300]
+          size: "600px wide, 500px tall"
+          color: "#1C1015"
+          edge_glow: "#E8430A at 30% opacity, 8px blur"
+        - type: smog_haze
+          color: "#C47FD5"
+          opacity: 0.18
+          blur: 80px
+        - type: flying_vehicle_silhouette
+          position: [x=400, y=180]
+          size: "90px wide"
+          color: "#0A0A12"
+          underbelly_light: "#F5D76E"
+    rain_layer:
+      stroke_color: "#8899AA"
+      stroke_opacity: 0.35
+      stroke_width: 0.8px
+      angle_degrees: 82
+      density: high
+      blur: 1.2px
+    hero_figure:
+      subject: "Deckard silhouette — trench coat, 3/4 rear-turned, pistol raised at 45°"
+      position: [x_centre=1000, y_top=620, y_bottom=2050]
+      silhouette_fill: "#0D0D18"
+      rim_light_left:
+        color: "#1ECBE1"
+        width: 4px
+        blur: 12px
+      rim_light_right:
+        color: "#E8430A"
+        width: 6px
+        blur: 20px
+    neon_street_layer:
+      base_color: "#050508"
+      reflections:
+        - color: "#1ECBE1"
+          x: 780
+          width: 22px
+          height: 320px
+          blur: 14px
+          opacity: 0.8
+        - color: "#E8430A"
+          x: 1050
+          width: 34px
+          height: 280px
+          blur: 18px
+          opacity: 0.75
+        - color: "#C47FD5"
+          x: 1280
+          width: 16px
+          height: 200px
+          blur: 10px
+          opacity: 0.6
+      puddle_ripple_overlay: true
+    heat: HOT
+  RATIONALE: The split cyan-left / amber-right rim lighting on Deckard's silhouette is the visual thesis statement — human warmth versus cold machine-light — while the wet-street neon reflections echo Los Angeles 2019's signature visual language.
+
+---
+
+TICK 7: GrainEffect
+  READS: hero_image_spec -> rain_layer, silhouette, neon reflections; color_palette -> background="#0A0A12"; layout_template -> canvas 2000×3000
+  WRITES: post_processing =
+    film_grain:
+      type: "analog 35mm scan grain"
+      intensity: 0.28
+      grain_size_px: 1.4
+      monochrome: false
+      blend_mode: overlay
+    chromatic_aberration:
+      red_offset_px: [+1.5, 0]
+      blue_offset_px: [-1.5, 0]
+      apply_to: neon_elements_only
+    vignette:
+      color: "#000000"
+      opacity: 0.72
+      radius: 70%
+      feather: 400px
+    halation:
+      apply_to: [neon_reflection_zone, rim_lights]
+      color_inherit: true
+      spread_px: 28
+      opacity: 0.45
+      blend_mode: screen
+    scan_line_overlay:
+      line_height_px: 4
+      opacity: 0.04
+      blend_mode: multiply
+      note: "Barely visible — suggests video surveillance aesthetic without overwhelming"
+    heat: HOT
+  RATIONALE: Analog film grain plus halation blooms on neon elements give the poster the tangible physicality of 1982 photochemical printing while the micro chromatic aberration on neon elements reinforces the idea of reality breaking at its seams.
+
+---
+
+TICK 8: Critic
+  READS: movie_seed [MEDIUM], color_palette [MEDIUM], title_layout [MEDIUM], typeface_spec [MEDIUM], layout_template [HOT], hero_image_spec [HOT], post_processing [HOT]
+  WRITES: critique_report =
+    overall_coherence: 8.5/10
+    issues:
+      - id: C1
+        severity: medium
+        description: "Eye contact / focal tension missing — Deckard is rear-turned; no face draws the viewer in. Consider adding a second, ghostly Batty face emerging from the sky zone at low opacity to create a protagonist/antagonist duality."
+      - id: C2
+        severity: low
+        description: "Tagline text color (#8899AA) may be too muted against the near-black background at small print sizes. Recommend nudging to #AAB8C4 for legibility."
+      - id: C3
+        severity: low
+        description: "Rutger Hauer is co-lead yet credits_block buries him equally with Ford. The poster would benefit from his name receiving identical point size to Ford's — they are already on the same credits_line, so this is satisfied. No change needed."
+      - id: C4
+        severity: low
+        description: "Flying vehicle in sky_zone has underbelly_light=#F5D76E — warm yellow reads slightly generic sci-fi. Suggest shifting to #FFB347 (a more amber-sodium tone) for period accuracy."
+    positive_notes:
+      - "Palette is tonally tight and internally consistent."
+      - "Eurostile Extended is exactly correct for the era and genre."
+      - "Layered rain + grain + halation post-processing is production-ready."
+      - "Zone-based layout gives a clear reading order."
+    recommended_patches: [C1, C2, C4]
+    heat: HOT
+  RATIONALE: A critic cross-reads all accumulated decisions looking for internal contradictions and experiential gaps, surfacing only actionable issues rather than aesthetic preferences.
+
+---
+
+TICK 9: HeroImageGen
+  READS: critique_report -> C1 (add Batty ghost face in sky), C4 (fix vehicle underbelly color); hero_image_spec [HOT]
+  WRITES: hero_image_patch =
+    patch_id: "v1.1"
+    change_C1:
+      add_element:
+        type: ghost_face_overlay
+        subject: "Roy Batty — frontal face, eyes half-open, rain-streaked, dissolving upward into smog"
+        position: [x_centre=980, y_top=80, y_bottom=680]
+        opacity: 0.22
+        blend_mode: screen
+        color_grade: "#C47FD5 tinted"
+        blur_top_px: 40
+        blur_bottom_px: 0
+        note: "Fades into sky gradient — viewer may perceive it subliminally before consciously recognising it"
+    change_C4:
+      update_element: flying_vehicle_silhouette
+      field: underbelly_light
+      old_value: "#F5D76E"
+      new_value: "#FFB347"
+    heat: HOT
+  RATIONALE: Adding Batty's dissolving face in the sky zone transforms the composition from a single-protagonist action poster into a haunted memento-mori — underscoring the film's core question of what it means to be alive.
+
+---
+
+TICK 10: TypefacePicker
+  READS: critique_report -> C2 (tagline color too muted, nudge to #AAB8C4); typeface_spec [MEDIUM]
+  WRITES: typeface_patch =
+    patch_id: "v1.1"
+    change_C2:
+      update_field: tagline_font.color
+      old_value: "#8899AA"
+      new_value: "#AAB8C4"
+    also_update: credits_font.color
+    credits_new_value: "#8899AA"
+    note: "Tagline gets slightly brighter cool-grey; credits stay at original muted tone to maintain hierarchy"
+    heat: HOT
+  RATIONALE: Raising the tagline's luminance by one notch ensures legibility at A2 print scale without breaking the tonal hierarchy between tagline and fine-print credits.
+
+---
+
+TICK 11: CompletionJudge
+  READS: 
+    movie_seed [COLD] -> all source data present
+    color_palette [COLD] -> 8-color system defined with hex values
+    title_layout [COLD] -> BLADE / RUNNER split, tagline, full credits block
+    typeface_spec [MEDIUM] + typeface_patch [HOT] -> Eurostile/Futura, sizes, colors corrected
+    layout_template [MEDIUM] -> 5 named zones, coordinates, reading-order rule
+    hero_image_spec [MEDIUM] + hero_image_patch [HOT] -> sky, rain, silhouette, street reflections, Batty ghost face
+    post_processing [MEDIUM] -> grain, chromatic aberration, vignette, halation, scan lines
+    critique_report [HOT] -> all 3 recommended patches applied
+  WRITES: completion_verdict =
+    status: COMPLETE
+    version: "1.1"
+    checklist:
+      source_metadata: PASS
+      color_palette: PASS
+      typography_title: PASS
+      typography_supporting: PASS
+      layout_composition: PASS
+      hero_visual_element: PASS
+      antagonist_visual_element: PASS
+      post_processing_effects: PASS
+      tagline_legibility: PASS
+      critic_issues_resolved: "3/3 recommended patches applied"
+    quality_score: 9.1/10
+    remaining_nit: "C3 was self-resolving — no outstanding issues."
+    approved_for: "Print production, digital campaign, theatrical one-sheet"
+    heat: HOT
+  RATIONALE: All major poster elements exist, are internally consistent, and the Critic's recommended patches have been applied — the design has reached sufficient fidelity for production hand-off.
+
+---
+
+## FINAL_ARTIFACT
+
+The finished Blade Runner (1982) one-sheet is a 2000 × 3000 px (2:3 theatrical) portrait printed on a near-black field (#0A0A12). The upper third bathes in a violet-amber smog gradient from which a vast Tyrell Corporation pyramid looms in near-invisible charcoal, its silhouette edged with a barely-there orange corona, and a spinner hovers at upper-left emitting a sodium-amber underbelly glow (#FFB347). Dissolving softly through the smog at 22% opacity — visible only when the eye lingers — is Roy Batty's rain-streaked face, fading upward like a half-remembered dream, tinted in violet-mauve and blurred at the crown. Dominating the centre, a full-length silhouette of Deckard stands in wet-trench-coat profile, pistol raised at 45°, his left flank rimmed in cool cyan (#1ECBE1, 12px halation) and his right in fierce amber-orange (#E8430A, 20px halation) — two competing natures, one body. Rain streaks at 82° saturate the entire image at 35% opacity. The lower third is a mirror-black puddle-slicked street where three neon columns — cyan, orange, violet — ripple vertically in reflection like drowned ghosts. Above this reflection, set horizontally centred in 112pt Eurostile Extended Bold at ivory (#E8E0D0) with a faint orange glow behind each letterform, the title reads BLADE on one line and RUNNER directly beneath it, each word tracked at 0.18em, the two lines forming a rectangular monolith. Below the title, in 14pt Futura PT Light at cool grey (#AAB8C4) with 0.06em tracking: *Man has made his match… now it's his problem.* The bottom strip carries "A RIDLEY SCOTT FILM / HARRISON FORD · RUTGER HAUER / WARNER BROS. · 1982" in 9pt Futura PT Book uppercase at #8899AA. Over the entire canvas sits a 28% analog film-grain overlay in screen mode, a 72% vignette fading from the corners, a gossamer scan-line texture at 4% opacity, and neon-only chromatic aberration of ±1.5px red-blue shift — making the image feel as though it has been pulled from a damaged 35mm print found in the rain.
+
+# --- JUDGE ---
+
+coherence: 5
+domain_fit: 5
+specificity: 5
+total: 15
+# --- SCORES ---
+scores:
+  coherence: 5
+  domain_fit: 5
+  specificity: 5
+  total: 15
+
+---
+# Blade Runner — rollout 2/2
+
+# Blackboard Design Session: Blade Runner (1982)
+
+---
+
+TICK 1: MoviePicker
+  READS: NOTHING
+  WRITES: movie_seed = 
+    title: "Blade Runner"
+    genre: sci-fi
+    subgenre: neo-noir
+    year: 1982
+    director: "Ridley Scott"
+    tagline: "Man has made his match... now it's his problem."
+    actors: ["Harrison Ford", "Rutger Hauer"]
+    mood_keywords: ["dystopian", "rain-soaked", "neon", "existential", "shadowy"]
+    heat: HOT
+  RATIONALE: Seeds the blackboard with all foundational metadata so every downstream specialist has a single authoritative source to read from.
+
+---
+
+TICK 2: GenrePalette
+  READS: movie_seed -> genre=sci-fi, subgenre=neo-noir, mood_keywords=[dystopian, rain-soaked, neon, existential, shadowy]
+  WRITES: color_palette =
+    name: "Neon Noir"
+    background: "#0A0A12"
+    primary_accent: "#E8430A"
+    secondary_accent: "#2BBFDE"
+    tertiary_accent: "#C4911A"
+    text_primary: "#E8E0D0"
+    text_shadow: "#E8430A"
+    fog_mid: "#1A1A2E"
+    neon_glow_pink: "#FF2D78"
+    rationale_note: "Deep near-black for dystopian void; orange-red neon for industrial heat and danger; cyan for cold rain and replicant eyes; amber for searchlight beams."
+    heat: HOT
+  RATIONALE: Neo-noir sci-fi demands a palette of near-black grounds punctuated by hot neon oranges, cold cyans, and amber searchlights — all drawn directly from the film's iconic Los Angeles 2019 visual language.
+
+---
+
+TICK 3: TitleParser
+  READS: movie_seed -> title="Blade Runner", tagline="Man has made his match... now it's his problem.", actors=[Harrison Ford, Rutger Hauer]
+  WRITES: title_layout =
+    primary_word: "BLADE"
+    secondary_word: "RUNNER"
+    primary_size_relative: "hero"
+    secondary_size_relative: "hero"
+    stacking: "vertical_flush_left"
+    tagline_text: "MAN HAS MADE HIS MATCH... NOW IT'S HIS PROBLEM."
+    tagline_position: "below_title_block"
+    credit_block: "HARRISON FORD  ·  RUTGER HAUER  |  A RIDLEY SCOTT FILM"
+    credit_position: "bottom_strip"
+    heat: HOT
+  RATIONALE: Splitting "BLADE" and "RUNNER" into two stacked lines of equal weight creates a monolithic title tower that anchors the left column and lets the hero image breathe on the right.
+
+---
+
+TICK 4: TypefacePicker
+  READS: movie_seed -> genre=sci-fi, subgenre=neo-noir, year=1982 | color_palette -> text_primary=#E8E0D0, text_shadow=#E8430A | title_layout -> stacking=vertical_flush_left
+  WRITES: typeface_spec =
+    title_face: "Eurostile Extended Bold"
+    title_tracking: "0.08em"
+    title_color: "#E8E0D0"
+    title_glow_shadow: "0 0 18px #E8430A, 0 0 40px #E8430A44"
+    tagline_face: "Helvetica Neue Light"
+    tagline_tracking: "0.22em"
+    tagline_color: "#C4911A"
+    tagline_size_relative: "small"
+    credit_face: "Helvetica Neue Regular"
+    credit_tracking: "0.18em"
+    credit_color: "#7A7A8A"
+    credit_size_relative: "tiny"
+    fallback_title: "Impact"
+    heat: HOT
+  RATIONALE: Eurostile Extended is the quintessential 1980s sci-fi typeface — its wide, squared letterforms read as both mechanical and futuristic — while Helvetica Neue keeps supporting text clinical and subordinate.
+
+---
+
+TICK 5: LayoutPicker
+  READS: title_layout -> stacking=vertical_flush_left, credit_position=bottom_strip | color_palette -> background=#0A0A12 | typeface_spec -> title_face=Eurostile Extended Bold
+  WRITES: layout_template =
+    canvas_width_px: 2000
+    canvas_height_px: 3000
+    orientation: "portrait"
+    zones:
+      hero_image:
+        x: 0
+        y: 0
+        w: 2000
+        h: 2600
+        layer: "background"
+      title_block:
+        x: 120
+        y: 1800
+        w: 900
+        h: 600
+        layer: "foreground"
+      tagline_block:
+        x: 120
+        y: 2430
+        w: 1400
+        h: 80
+        layer: "foreground"
+      credit_strip:
+        x: 0
+        y: 2880
+        w: 2000
+        h: 120
+        layer: "foreground"
+        bg_color: "#0A0A12"
+      year_badge:
+        x: 1800
+        y: 120
+        w: 160
+        h: 60
+        layer: "foreground"
+    composition_note: "Hero image bleeds full canvas; title anchors lower-left, leaving upper-right open for the iconic cityscape and figure silhouette."
+    heat: HOT
+  RATIONALE: A full-bleed portrait composition with the title planted in the lower-left third follows classic noir poster grammar while giving the sprawling dystopian cityscape maximum vertical real estate.
+
+---
+
+TICK 6: HeroImageGen
+  READS: color_palette -> background=#0A0A12, primary_accent=#E8430A, secondary_accent=#2BBFDE, fog_mid=#1A1A2E, neon_glow_pink=#FF2D78 | layout_template -> hero_image zone (0,0,2000,2600) | movie_seed -> mood_keywords=[dystopian, rain-soaked, neon, existential, shadowy]
+  WRITES: hero_image_spec =
+    subject:
+      type: "lone male silhouette"
+      description: "A trench-coated figure (Deckard) stands in three-quarter profile at x=1100, y=900 from top, roughly 800px tall, face partially lit by amber neon from the left, identity ambiguous in shadow."
+      fill_color: "#1A1020"
+      edge_light_left: "#C4911A"
+      edge_light_right: "#2BBFDE"
+    background_layers:
+      - layer: "deep_sky"
+        fill: "radial gradient from #1A1A2E at top-center to #0A0A12 at edges"
+        y_range: "0 to 1400px"
+      - layer: "cityscape_mid"
+        description: "Dense cluster of Brutalist megastructures, 400–900px tall, silhouetted in #12121E with scattered lit windows as dots: #E8430A (40%), #2BBFDE (35%), #C4911A (25%)"
+        y_range: "700px to 2000px"
+      - layer: "neon_signage"
+        elements:
+          - text: "TDK"
+            color: "#E8430A"
+            glow: "30px blur"
+            position: "x=600, y=500"
+          - text: "KOSS"
+            color: "#2BBFDE"
+            glow: "24px blur"
+            position: "x=1500, y=700"
+          - shape: "horizontal neon bar"
+            color: "#FF2D78"
+            position: "x=200, y=1200, w=300, h=6"
+            glow: "20px blur"
+      - layer: "rain_streaks"
+        description: "Diagonal white lines at 82° angle, opacity 0.12, spacing 18px, motion-blur length 60px, covering full canvas"
+        color: "#FFFFFF"
+        opacity: 0.12
+      - layer: "ground_fog"
+        description: "Horizontal gradient fog band from #1A1A2E at 80% opacity to transparent, y=2000 to y=2400"
+      - layer: "foreground_puddle"
+        description: "Abstract reflective surface at y=2100–2600, reflecting neon colors #E8430A and #2BBFDE as wobbly vertical smears, opacity 0.45"
+    atmosphere: "heavy smog vignette, radial darkening 60% at all four corners using #0A0A12"
+    heat: HOT
+  RATIONALE: The silhouetted detective against a layered neon-lit megacity with rain streaks and puddle reflections directly invokes the film's most iconic visual grammar while giving the title block clear legibility against the dark lower-left quadrant.
+
+---
+
+TICK 7: GrainEffect
+  READS: color_palette -> background=#0A0A12, primary_accent=#E8430A | hero_image_spec -> atmosphere=heavy smog vignette, rain_streaks opacity=0.12 | layout_template -> canvas 2000×3000
+  WRITES: post_processing =
+    film_grain:
+      type: "monochromatic noise"
+      intensity: 0.18
+      grain_size_px: 1.4
+      blend_mode: "overlay"
+      coverage: "full canvas"
+    halation:
+      description: "Soft orange-red bloom around neon elements"
+      color: "#E8430ACC"
+      blur_radius_px: 55
+      blend_mode: "screen"
+      applied_to: ["neon_signage", "edge_light_left on silhouette"]
+    color_grade:
+      shadows_shift: "#0D0818"
+      midtones_shift: "#1A1428"
+      highlights_shift: "#F0D8B0"
+      overall_saturation_reduction: "12%"
+      description: "Slight desaturation in midtones to evoke aged Technicolor print stock"
+    scan_lines:
+      visible: false
+      note: "Omitted — too overt for a premium film poster context"
+    vignette:
+      shape: "elliptical"
+      color: "#05050A"
+      opacity: 0.72
+      feather_px: 400
+    chromatic_aberration:
+      enabled: true
+      rgb_offset_px: 2
+      blend_mode: "normal"
+      opacity: 0.35
+      description: "Subtle red/blue channel split on title text edges only"
+    heat: HOT
+  RATIONALE: Film grain, halation blooms on neon sources, and a warm-shadow color grade together evoke the look of a 1982 photochemical print while keeping the poster feeling tactile rather than digitally sterile.
+
+---
+
+TICK 8: Critic
+  READS: movie_seed (MEDIUM) | color_palette (MEDIUM) | title_layout (MEDIUM) | typeface_spec (MEDIUM) | layout_template (MEDIUM) | hero_image_spec (HOT) | post_processing (HOT)
+  WRITES: critique_report =
+    overall_score: 8.4
+    strengths:
+      - "Color palette is deeply coherent with the source material — the #0A0A12 / #E8430A / #2BBFDE triad is instantly recognizable as Blade Runner's aesthetic."
+      - "Title typography in Eurostile Extended Bold is period-accurate and genre-appropriate."
+      - "Lower-left title anchor leaves the skyline unobstructed — strong compositional decision."
+      - "Rain streaks, halation, and grain together build a convincing 1982 photographic texture."
+      - "Tagline placement at y=2430 gives it proper breathing room above the credit strip."
+    gaps_and_concerns:
+      - id: GAP_01
+        severity: MEDIUM
+        detail: "The silhouette at x=1100 risks merging with the dark cityscape mid-layer. A subtle rim-light in #2BBFDE at x=1100 right edge, 4px wide, 60% opacity, would separate figure from ground."
+      - id: GAP_02
+        severity: LOW
+        detail: "No explicit MPAA rating block or studio logo (Warner Bros / The Ladd Company) in the credit strip — poster feels slightly unofficial without it."
+      - id: GAP_03
+        severity: LOW
+        detail: "The year badge at (1800, 120) has no specified typeface or color — needs resolving."
+      - id: GAP_04
+        severity: MEDIUM
+        detail: "Tagline set in #C4911A may be low-contrast against the fog mid-layer (#1A1A2E) at y=2430. Recommend adding a 4px feathered dark underlay rectangle behind tagline block."
+    recommendation: "Address GAP_01 and GAP_04 before finalizing; add studio badge for GAP_02."
+    heat: HOT
+  RATIONALE: The Critic cross-checks every layer for visual coherence, contrast issues, and production completeness, surfacing only actionable gaps rather than abstract praise.
+
+---
+
+TICK 9: HeroImageGen
+  READS: critique_report -> GAP_01 (silhouette separation), GAP_04 (tagline contrast) | hero_image_spec (HOT) | color_palette -> secondary_accent=#2BBFDE, fog_mid=#1A1A2E
+  WRITES: hero_image_patch =
+    patch_id: "v1.1"
+    changes:
+      silhouette_rim_light:
+        description: "Add right-edge rim light to silhouette"
+        x: 1100
+        y: 900
+        width_px: 4
+        height_px: 800
+        color: "#2BBFDE"
+        opacity: 0.60
+        blur_px: 8
+        blend_mode: "screen"
+      tagline_underlay:
+        description: "Semi-transparent dark rectangle behind tagline text block"
+        x: 110
+        y: 2420
+        w: 1420
+        h: 90
+        fill: "#07070F"
+        opacity: 0.68
+        blur_px: 12
+      studio_badge:
+        description: "Bottom-left of credit strip: 'THE LADD COMPANY / WARNER BROS.' in credit_face at 0.14em tracking"
+        x: 60
+        y: 2892
+        color: "#555565"
+        font: "Helvetica Neue Regular"
+        size_relative: "micro"
+      year_badge_resolved:
+        x: 1800
+        y: 120
+        text: "1982"
+        font: "Eurostile Extended Bold"
+        color: "#C4911A"
+        size_px: 36
+        tracking: "0.14em"
+    heat: HOT
+  RATIONALE: Directly resolves the two MEDIUM-severity gaps from the Critic — the cyan rim light separates the figure from the dark cityscape, and the dark underlay ensures the amber tagline clears the WCAG AA contrast threshold against the fog layer.
+
+---
+
+TICK 10: Critic
+  READS: hero_image_patch (HOT) | critique_report (HOT) | typeface_spec (MEDIUM) | layout_template (MEDIUM) | post_processing (MEDIUM)
+  WRITES: critique_report_v2 =
+    overall_score: 9.2
+    resolved:
+      - GAP_01: "Rim light at x=1100, #2BBFDE, 60% opacity — figure now reads cleanly against cityscape. RESOLVED."
+      - GAP_02: "Studio badge added in credit strip at micro weight. RESOLVED."
+      - GAP_03: "Year badge resolved: Eurostile Bold, #C4911A, 36px. RESOLVED."
+      - GAP_04: "Dark underlay #07070F at 68% opacity behind tagline. RESOLVED."
+    remaining_notes:
+      - "Chromatic aberration on title text (2px RGB offset) is subtle enough to be invisible in small print — acceptable."
+      - "Grain intensity 0.18 is appropriate; would only push to 0.22 for a deliberately distressed variant."
+      - "All major poster zones are populated: hero image, title block, tagline, credit strip, year badge, studio logo."
+    verdict: "READY_FOR_COMPLETION"
+    heat: HOT
+  RATIONALE: A second pass confirms all flagged gaps are resolved and no new structural issues have been introduced by the patches, clearing the design for CompletionJudge review.
+
+---
+
+TICK 11: CompletionJudge
+  READS: critique_report_v2 -> verdict=READY_FOR_COMPLETION, overall_score=9.2 | movie_seed (COLD) | color_palette (COLD) | title_layout (COLD) | typeface_spec (MEDIUM) | layout_template (MEDIUM) | hero_image_spec (MEDIUM) | hero_image_patch (HOT) | post_processing (MEDIUM)
+  WRITES: completion_declaration =
+    status: "COMPLETE"
+    version: "1.1"
+    quality_score: 9.2
+    checklist:
+      movie_identity: PASS
+      color_palette: PASS
+      title_typography: PASS
+      layout_composition: PASS
+      hero_image: PASS
+      post_processing_effects: PASS
+      tagline: PASS
+      credit_block: PASS
+      studio_badge: PASS
+      year_badge: PASS
+      contrast_legibility: PASS
+      period_authenticity: PASS
+    notes: "All 12 checklist items pass. The design achieves genre fidelity, period accuracy, and compositional clarity. No further specialist input required."
+    heat: HOT
+  RATIONALE: With a Critic score of 9.2, all gaps resolved, and all 12 checklist items passing, the CompletionJudge formally closes the session and locks the artifact.
+
+---
+
+# FINAL_ARTIFACT
+
+The finished **Blade Runner (1982)** poster is a 2000×3000px portrait-orientation piece built on a near-void background of **#0A0A12**. The full-bleed hero image layers a dense Brutalist megacity silhouette — its thousand windows dotting the dark skyline in orange-red (#E8430A), cold cyan (#2BBFDE), and amber (#C4911A) — beneath a smog-choked sky that graduates from deep indigo at the horizon to absolute black at the upper corners. A trench-coated figure (Deckard's silhouette) stands in three-quarter profile at the upper-right of the composition, separated from the dark cityscape by a razor-thin **#2BBFDE** rim light at 60% opacity; his left face is warmed by amber neon halation while rain streaks — white lines at 82°, 12% opacity, 60px motion-blur — fall across the entire canvas. Neon signage fragments ("TDK" in orange, "KOSS" in cyan) glow from the mid-city layer with 24–30px Gaussian blooms, and a wobbly puddle reflection in the lower third mirrors the entire neon palette at 45% opacity. In the lower-left, the title **BLADE / RUNNER** stacks in two flush-left lines of **Eurostile Extended Bold** in warm cream (#E8E0D0) with a double-layer orange-red glow shadow (18px and 40px), carrying a subtle 2px chromatic aberration on the letter edges. Beneath it, in small amber Helvetica Neue Light tracked at 0.22em, runs the tagline **"MAN HAS MADE HIS MATCH... NOW IT'S HIS PROBLEM."** over a 68%-opacity dark underlay that guarantees legibility. The bottom strip — background #0A0A12 — holds the credit line **HARRISON FORD · RUTGER HAUER | A RIDLEY SCOTT FILM** in grey Helvetica Neue, with the studio badge **THE LADD COMPANY / WARNER BROS.** at micro weight far left. A lone **1982** year badge in Eurostile Bold amber sits at the upper-right corner. Film grain at 1.4px / 18% overlay intensity, elliptical vignette at 72% opacity, and a warm-shadow color grade (shadows pulled toward #0D0818, highlights to #F0D8B0) give the whole image the texture of a photochemical print found in a 1982 movie-house lobby — cold, neon-sick, and unmistakably *Blade Runner*.
+
+# --- JUDGE ---
+
+coherence: 5
+domain_fit: 5
+specificity: 5
+total: 15
+# --- SCORES ---
+scores:
+  coherence: 5
+  domain_fit: 5
+  specificity: 5
+  total: 15

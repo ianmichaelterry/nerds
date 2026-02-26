@@ -1,0 +1,242 @@
+type_vocabulary:
+- MovieSeed
+- ColorPalette
+- TitleLayout
+- TypefaceSpec
+- CompositionPlan
+- ImagerySpec
+- AtmosphereSpec
+data_schemas:
+  MovieSeed:
+    title: canonical film title string
+    genre: primary genre string
+    subgenre: secondary genre string (e.g. neo-noir)
+    year: release year integer
+    director: director name string
+    tagline: verbatim tagline string
+    actors: list of lead actor name strings
+    mood_keywords: list of 4-6 evocative mood/atmosphere words
+    heat: HOT — foundational item read by all downstream specialists
+  ColorPalette:
+    name: evocative palette name string
+    background: hex — near-black base color
+    primary_accent: hex — dominant neon/warm color
+    secondary_accent: hex — cool counterpoint color
+    tertiary_accent: hex — third accent (smog/amber/etc.)
+    text_primary: hex — main title/body text color
+    text_secondary: hex — credits/tagline muted color
+    neon_glow: hex — bloom/glow color for text shadow
+    fog_mid: hex — midtone atmosphere fill
+    rationale_note: prose explanation tying palette to genre+mood
+    heat: HOT
+  TitleLayout:
+    primary_word: first title word, uppercase
+    secondary_word: second title word, uppercase
+    stacking: layout strategy enum (vertical_flush_left, centered, etc.)
+    primary_size_relative: hero / large / medium
+    secondary_size_relative: hero / large / medium
+    tagline_text: verbatim tagline, uppercase
+    tagline_position: positional enum (below_title_block, etc.)
+    credit_block: formatted credits string with separators
+    credit_position: positional enum (bottom_strip, etc.)
+    heat: HOT
+  TypefaceSpec:
+    title_face: font family + weight string
+    title_tracking: em value string
+    title_color: hex from ColorPalette.text_primary
+    title_glow_shadow: CSS-style multi-layer shadow string
+    tagline_face: font family + weight string
+    tagline_tracking: em value string
+    tagline_color: hex from ColorPalette
+    tagline_size_relative: small / medium
+    credit_face: font family + weight string
+    credit_tracking: em value string
+    credit_color: hex — muted
+    credit_size_relative: tiny / small
+    fallback_title: web-safe fallback font string
+    heat: HOT
+  CompositionPlan:
+    layout_structure: description of zones (hero image zone, title zone, etc.)
+    focal_point: primary visual anchor description
+    title_zone: positional description
+    image_zone: positional description
+    depth_layers: list of foreground/midground/background elements
+    heat: WARM
+  ImagerySpec:
+    hero_subject: primary figure or scene description
+    environment: setting/background description
+    lighting_direction: light source and angle
+    key_props: list of iconic objects/elements
+    atmosphere_fx: rain, fog, lens-flare, etc.
+    heat: WARM
+  AtmosphereSpec:
+    weather: rain / fog / clear / etc.
+    neon_sources: list of in-scene neon color sources
+    depth_of_field: shallow / medium / deep
+    film_grain: boolean or intensity level
+    heat: WARM
+heuristic_entries:
+- table: GENRE_PALETTE
+  key: sci-fi/neo-noir
+  value:
+    background: '#0A0A12'
+    primary_accent: '#E8430A'
+    secondary_accent: '#1ECBE1'
+    tertiary_accent: '#C47FD5'
+    text_primary: '#E8E0D0'
+    text_secondary: '#8899AA'
+    neon_glow: '#E8430A'
+  evidence: Both winning trajectories converged on near-black background, orange-red primary,
+    cyan secondary, warm ivory text for neo-noir sci-fi
+- table: GENRE_TYPEFACE
+  key: sci-fi/neo-noir/1982
+  value:
+    title_face: Eurostile Extended Bold
+    tagline_face: Futura PT Light OR Helvetica Neue Light
+    credit_face: Futura PT Book OR Helvetica Neue Regular
+    rationale: Eurostile Extended is the canonical 1980s sci-fi cold-machine typeface; Futura/Helvetica
+      carry modernist neutrality for supporting text
+  evidence: Both winning trajectories independently chose Eurostile Extended Bold for title
+    and Futura/Helvetica for tagline+credits
+- table: TITLE_STACKING
+  key: two-word-title/sci-fi
+  value:
+    strategy: vertical_stacked_equal_weight
+    tracking: 0.08em–0.18em
+    case: uppercase
+    rationale: Splitting two-word titles onto separate lines of equal hero weight creates
+      a monolithic anchor column
+  evidence: Both winners split BLADE / RUNNER onto two stacked lines of identical weight
+- table: MOOD_TO_ATMOSPHERE
+  key: dystopian/rain-soaked/neon
+  value:
+    weather: rain
+    neon_sources:
+    - street signage
+    - searchlights
+    - reflections in wet pavement
+    depth_of_field: shallow
+    film_grain: true
+  evidence: Both winners include rain-soaked, neon, urban-decay in mood_keywords and reference
+    Los Angeles 2019 streetscapes
+- table: CREDITS_FORMAT
+  key: sci-fi/1982/theatrical
+  value:
+    director_line: A [DIRECTOR] FILM
+    cast_line: '[ACTOR1]  ·  [ACTOR2]'
+    studio_line: WARNER BROS. · [YEAR]
+    position: bottom_strip
+    case: uppercase
+  evidence: Both winners format credits as uppercase bottom strip with period/dot separators
+    in theatrical style
+- table: TEXT_GLOW
+  key: neo-noir/neon-text
+  value:
+    glow_css: 0 0 18px {primary_accent}, 0 0 40px {primary_accent}44
+    rationale: Multi-layer CSS glow with outer diffuse layer at ~25% opacity simulates neon
+      bloom
+  evidence: Both winners apply orange-red glow shadow to title text matching primary_accent
+    color
+precondition_rules:
+- GenrePalette REQUIRES MovieSeed
+- TitleParser REQUIRES MovieSeed
+- TypefacePicker REQUIRES ColorPalette REQUIRES TitleLayout
+- CompositionPlan REQUIRES TitleLayout REQUIRES ImagerySpec
+- ImagerySpec REQUIRES MovieSeed REQUIRES ColorPalette
+- AtmosphereSpec REQUIRES ColorPalette REQUIRES MovieSeed
+- TypefacePicker REQUIRES MovieSeed ABSENT TypefaceSpec
+thermal_mass_assignments:
+  MovieSeed: 5
+  ColorPalette: 5
+  TitleLayout: 4
+  TypefaceSpec: 4
+  CompositionPlan: 3
+  ImagerySpec: 3
+  AtmosphereSpec: 2
+specialist_patterns:
+- name: MoviePicker
+  reads:
+  - BRIEF
+  writes:
+  - MovieSeed
+  heuristic: Enriches raw brief with subgenre classification, mood_keywords list, and heat=HOT
+    so all downstream specialists have one authoritative source
+  cooldown_rate: 1
+  fires_once: true
+- name: GenrePalette
+  reads:
+  - MovieSeed
+  writes:
+  - ColorPalette
+  heuristic: Maps genre+subgenre+mood_keywords through GENRE_PALETTE lookup; always specifies
+    background, 3 accents, text pair, neon_glow, and fog_mid; writes rationale_note prose
+  cooldown_rate: 2
+  fires_once: true
+- name: TitleParser
+  reads:
+  - MovieSeed
+  writes:
+  - TitleLayout
+  heuristic: Splits multi-word titles into stacked equal-weight hero lines; pulls verbatim
+    tagline; formats credits block with dot separators; assigns positional enums
+  cooldown_rate: 2
+  fires_once: true
+- name: TypefacePicker
+  reads:
+  - MovieSeed
+  - ColorPalette
+  - TitleLayout
+  writes:
+  - TypefaceSpec
+  heuristic: Applies GENRE_TYPEFACE lookup (Eurostile Extended Bold for sci-fi title); derives
+    text colors from ColorPalette; computes multi-layer CSS glow shadow from primary_accent;
+    specifies tracking per TEXT_GLOW table
+  cooldown_rate: 2
+  fires_once: true
+- name: CompositionPlanner
+  reads:
+  - MovieSeed
+  - TitleLayout
+  - ColorPalette
+  writes:
+  - CompositionPlan
+  heuristic: Divides canvas into named zones; anchors title tower to one side; leaves hero
+    image zone for figure; specifies depth layers (foreground figure, midground cityscape,
+    background sky)
+  cooldown_rate: 3
+  fires_once: true
+- name: ImageryDirector
+  reads:
+  - MovieSeed
+  - ColorPalette
+  - CompositionPlan
+  writes:
+  - ImagerySpec
+  heuristic: Selects hero subject from actors/mood; defines environment from mood_keywords;
+    picks key props from genre iconography; sets atmosphere_fx from MOOD_TO_ATMOSPHERE table
+  cooldown_rate: 3
+  fires_once: true
+- name: AtmosphereDesigner
+  reads:
+  - MovieSeed
+  - ColorPalette
+  - ImagerySpec
+  writes:
+  - AtmosphereSpec
+  heuristic: Translates mood_keywords into weather, neon_sources list, depth_of_field, and
+    film_grain settings; cross-references MOOD_TO_ATMOSPHERE table
+  cooldown_rate: 3
+  fires_once: true
+narrative_insight: 'Both winning trajectories succeeded by establishing a single authoritative
+  MovieSeed item in tick 1 that included a subgenre field (neo-noir) and a mood_keywords list
+  — these two additions acted as a translation layer converting raw genre labels into actionable
+  design vocabulary that every downstream specialist could read directly. The critical discipline
+  was strict sequential dependency: ColorPalette was always written before TypefaceSpec, and
+  TitleLayout was always written before CompositionPlan, so each specialist inherited a fully
+  resolved upstream context rather than guessing. Winners also showed convergent specificity:
+  both independently arrived at Eurostile Extended Bold for the title and a near-black (#0A0A12)
+  background with orange-red primary accent (#E843xx), proving these are stable genre-to-design
+  mappings worth encoding as lookup table rows rather than re-deriving each time. The lesson
+  is that the blackboard''s power comes not from specialist creativity alone but from rich,
+  consistently structured seed items that carry subgenre and mood metadata, enabling deterministic
+  palette and typeface lookups that compound into coherent, domain-authentic poster designs.'

@@ -1,0 +1,314 @@
+════════════════════════════════════════════════════════════════════════
+  NERDS DISTILLATION PIPELINE — narrative walkthrough
+════════════════════════════════════════════════════════════════════════
+
+We have five classic films. We want to distill what an LLM knows about
+movie poster design into a pile of dumb Python specialists (nerds) that
+run at zero LLM cost. The pipeline has three phases per epoch.
+
+  Input briefs:
+    • Blade Runner (1982) — sci-fi
+    • The Shining (1980) — horror
+    • Moonlight (2016) — drama
+    • Chinatown (1974) — noir
+    • Mad Max: Fury Road (2015) — action
+
+G=3 trajectories per brief, 1 epoch = 15 simulations + 15 judge calls +
+5 extractions + 1 crystallization.
+
+════════════════════════════════════════════════════════════════════════
+  PHASE 1 — Narrative Simulation (Explore)
+════════════════════════════════════════════════════════════════════════
+
+For each brief we ask the LLM to *narrate* a collaborative design
+session as if a team of blackboard specialists were passing work around.
+We don't ask for a finished poster — we ask for the *process*. This
+gives us trajectories we can compare rather than a single guess.
+
+
+────────────────────────────────────────────────────────────────────────
+  Brief: Blade Runner — rollout 1/3
+────────────────────────────────────────────────────────────────────────
+
+System prompt tells the LLM: you are simulating a blackboard session.
+Specialists take turns reading typed items and writing new ones. Be
+concrete — actual hex values, not 'dark colors'.
+
+  TICK 1: MoviePicker
+    READS: NOTHING
+    WRITES: MovieData = {title: "Blade Runner", genre: sci-fi, year: 1982,
+                         tagline: "Man has made his match...",
+                         tone: [dystopian, neon, rain-soaked, existential]}
+    RATIONALE: Seeds the blackboard so every downstream specialist shares
+               a canonical source of truth.
+
+  TICK 2: GenrePalette
+    READS: MovieData → genre=sci-fi, tone=[neon, rain-soaked]
+    WRITES: ColorPalette = {key: "#0A0A12", accent: "#FF8C00",
+                             cool: "#00E5FF", genre: "sci-fi"}
+    RATIONALE: Near-black base + amber warmth vs cyan cold encodes the
+               film's human/machine tension directly in hue.
+
+  TICK 3: TitleParser
+    READS: MovieData → title="Blade Runner"
+    WRITES: TitleChunks = {primary: "BLADE", secondary: "RUNNER",
+                            stacking: vertical, tracking: wide}
+    RATIONALE: Two words stacked at equal weight — visual duality mirrors
+               the hunter/hunted theme.
+
+  TICK 4: TypefacePicker
+    READS: MovieData, ColorPalette, TitleChunks
+    WRITES: Typeface = {family: "Eurostile Extended Bold",
+                         tagline: "Futura Light", case: ALL_CAPS}
+    RATIONALE: Eurostile is the canonical 1980s sci-fi typeface — squared
+               superellipse letterforms feel mechanical without pastiche.
+
+  TICK 5: LayoutPicker
+    READS: TitleChunks, ColorPalette
+    WRITES: Layout = {name: "bottom-heavy", title_y: 0.72,
+                       image_y: 0.0, image_h: 0.65, credits_y: 0.91}
+    RATIONALE: Title anchored low lets the hero image dominate — figure
+               emerging from darkness, city compressed below.
+
+  TICK 6: HeroImageGen
+    READS: ColorPalette → key=#0A0A12, accent=#FF8C00, cool=#00E5FF
+    WRITES: HeroImage = {blocks: [{x:0.1,y:0.0,w:0.8,h:0.6,
+                                    color:#0A0A12},
+                                   {x:0.0,y:0.0,w:0.15,h:1.0,
+                                    color:#FF8C00},
+                                   {x:0.85,y:0.0,w:0.15,h:1.0,
+                                    color:#00E5FF}]}
+    RATIONALE: Flanking amber/cyan columns frame the dark center figure —
+               the color split literalizes hunter vs hunted.
+
+  TICK 7: GrainEffect
+    READS: HeroImage
+    WRITES: PostEffect = {effects: [grain, vignette]}
+    RATIONALE: Film grain honors the 1982 photochemical print stock.
+
+  TICK 8: Critic
+    READS: all items (tick > 3)
+    WRITES: Critique = {completeness: 1.0, issues: []}
+    RATIONALE: All five required elements present — design is coherent.
+
+  TICK 9: CompletionJudge
+    READS: Critique → completeness=1.0
+    WRITES: Completion = {declared: true}
+    RATIONALE: Score ≥ 0.8, session ends.
+
+  FINAL_ARTIFACT: A 2:3 one-sheet. Near-black ground. Amber and cyan
+  fire columns frame a silhouetted figure from behind. Title BLADE /
+  RUNNER in stacked Eurostile, amber glow on BLADE, cyan on RUNNER.
+  Tagline beneath in Futura Light. Grain + vignette. Total: 9 ticks.
+
+
+  ▸ Judge scores this trajectory
+
+  coherence: 5
+  domain_fit: 5
+  specificity: 4
+  total: 14
+
+High coherence (each tick builds on the last), high domain fit
+(amber/cyan neon is canonically Blade Runner), slightly lower
+specificity (HeroImage blocks are abstract not figurative).
+
+
+────────────────────────────────────────────────────────────────────────
+  Brief: Blade Runner — rollout 2/3  (lower-scoring)
+────────────────────────────────────────────────────────────────────────
+
+  TICK 1: MoviePicker
+    READS: NOTHING
+    WRITES: MovieData = {title: "Blade Runner", genre: sci-fi}
+
+  TICK 2: LayoutPicker          ← fires before palette exists
+    READS: NOTHING relevant
+    WRITES: Layout = {name: "classic-centered", title_y: 0.10}
+    RATIONALE: Just picks a layout. No color information yet.
+
+  TICK 3: TypefacePicker        ← fires before genre palette
+    READS: NOTHING relevant
+    WRITES: Typeface = {family: "script-italic"}
+    RATIONALE: Random pick — no palette to guide it.
+    NOTE: script-italic is wildly wrong for sci-fi dystopia.
+
+  TICK 4: GenrePalette
+    READS: MovieData
+    WRITES: ColorPalette = {key: "#2C4A8C", accent: "#E8A030"}
+    RATIONALE: Generic blue — not the near-black neo-noir palette.
+
+  ... (session eventually completes but design is incoherent)
+
+  FINAL_ARTIFACT: Script-italic title on a centered layout with a
+  generic blue palette. Tagline present. Technically complete but
+  thematically wrong — looks nothing like Blade Runner.
+
+
+  ▸ Judge scores this trajectory
+
+  coherence: 2
+  domain_fit: 2
+  specificity: 3
+  total: 7
+
+Low coherence (TypefacePicker fired with no context), low domain fit
+(blue palette, script typeface — antithetical to neo-noir).
+
+════════════════════════════════════════════════════════════════════════
+  PHASE 2 — Semantic Advantage Extraction
+════════════════════════════════════════════════════════════════════════
+
+Now we compare the G=3 trajectories for Blade Runner. Trajectory 1
+scored 14/15, trajectory 2 scored 7/15. We ask the LLM: what did the
+winner do that the loser didn't? Express it as NERDS-shaped rules.
+
+The key insight the extractor pulls out:
+
+  type_vocabulary:
+  - MovieData
+  - ColorPalette
+  - TitleChunks
+  - Typeface
+  - Layout
+  - HeroImage
+  - PostEffect
+  - Critique
+  - Completion
+  heuristic_entries:
+  - table: GENRE_PALETTES
+    key: sci-fi
+    value:
+      key_hue: 0.58
+      accent_hue: 0.1
+      sat: 0.7
+      val: 0.3
+    evidence: Winners used near-black + amber/cyan in 2/2 sci-fi trajectories;
+      loser used generic mid-blue
+  - table: GENRE_TYPEFACES
+    key: sci-fi
+    value:
+      preferred: mono-regular
+    evidence: Winner used Eurostile/mono; loser used script-italic (catastrophically
+      wrong)
+  precondition_rules:
+  - GenrePalette REQUIRES MovieData ABSENT ColorPalette
+  - TypefacePicker REQUIRES ColorPalette ABSENT Typeface
+  - HeroImageGen REQUIRES ColorPalette ABSENT HeroImage
+  thermal_mass_assignments:
+    MovieData: 5
+    ColorPalette: 3
+    TitleChunks: 3
+    Typeface: 2
+    Layout: 4
+    HeroImage: 3
+    PostEffect: 1
+    Critique: 1
+    Completion: 10
+  narrative_insight: The decisive failure in low-scoring trajectories was
+    specialists firing before their dependencies existed — TypefacePicker
+    before ColorPalette, LayoutPicker before any semantic context. Winners
+    established MovieData → ColorPalette → TitleChunks before any visual
+    decisions, giving each subsequent specialist a concrete vocabulary to
+    build on rather than guessing from genre strings alone.
+
+This gets merged into the experience library. After all 5 briefs, the
+library has entries for every genre, cross-validated across 15
+trajectories. The sci-fi palette entry gets confirmed by 3 rollouts. The
+horror entry gets refined: early epoch said val=0.2, later rollout shows
+val=0.15 produces better contrast — the library updates.
+
+════════════════════════════════════════════════════════════════════════
+  PHASE 3 — Crystallization
+════════════════════════════════════════════════════════════════════════
+
+The experience library is now a structured dict: type vocabulary,
+heuristic tables, precondition rules, thermal masses, specialist
+patterns. We make one final LLM call: turn this into Python.
+
+The prompt says: here is the library, here is the Nerd base class API,
+emit a module. No LLM at runtime. Dumb is good.
+
+  # nerds_distilled.py — generated from 15 trajectories, 1 epoch
+
+  GENRE_PALETTES = {
+      # sci-fi: near-black + amber vs cyan — 3/3 winners agreed
+      "sci-fi":  {"key_hue": 0.58, "accent_hue": 0.10, "sat": 0.7, "val": 0.3},
+      # horror: blood red/black — 2/3 winners, one outlier used deep violet
+      "horror":  {"key_hue": 0.0,  "accent_hue": 0.0,  "sat": 0.6, "val": 0.15},
+      "noir":    {"key_hue": 0.75, "accent_hue": 0.08, "sat": 0.5, "val": 0.2},
+      "drama":   {"key_hue": 0.55, "accent_hue": 0.45, "sat": 0.4, "val": 0.35},
+      "action":  {"key_hue": 0.08, "accent_hue": 0.12, "sat": 0.9, "val": 0.4},
+  }
+
+  GENRE_TYPEFACES = {
+      # distilled finding: sci-fi prefers mono, NOT script (costly error in traj 2)
+      "sci-fi": "mono-regular", "horror": "slab-heavy",
+      "noir": "sans-light",     "action": "serif-bold",
+      "drama": "script-italic",
+  }
+
+  class GenrePaletteNerd(Nerd):
+      def can_run(self, bb):
+          # REQUIRES MovieData ABSENT ColorPalette — from precondition rules
+          return super().can_run(bb) and bb.has("MovieData") and not bb.has("ColorPalette")
+      def run(self, bb):
+          movie = bb.pick("MovieData")
+          genre = movie.value.get("genre", "drama")
+          pal = GENRE_PALETTES.get(genre, GENRE_PALETTES["drama"])
+          jitter = random.uniform(-0.05, 0.05)
+          key_rgb = colorsys.hsv_to_rgb((pal["key_hue"] + jitter) % 1.0,
+                                         pal["sat"], pal["val"])
+          # thermal_mass=3: foundational but not permanent
+          return [Item("ColorPalette",
+                       {"key": tuple(int(x*255) for x in key_rgb), "genre": genre},
+                       Heat.HOT, thermal_mass=3)]
+
+  class TypefaceNerd(Nerd):
+      def can_run(self, bb):
+          # REQUIRES ColorPalette ABSENT Typeface — learned from failures
+          return super().can_run(bb) and bb.has("ColorPalette") and not bb.has("Typeface")
+      def run(self, bb):
+          palette = bb.pick("ColorPalette")
+          genre = palette.value["genre"] if palette else "drama"
+          preferred = GENRE_TYPEFACES.get(genre)
+          if preferred and random.random() < 0.7:
+              face = next((f for f in TYPEFACES if f["name"] == preferred),
+                          random.choice(TYPEFACES))
+          else:
+              face = random.choice(TYPEFACES)
+          return [Item("Typeface", face, Heat.MEDIUM, thermal_mass=2)]
+
+════════════════════════════════════════════════════════════════════════
+  WHAT WAS LEARNED vs. THE HAND-AUTHORED VERSION
+════════════════════════════════════════════════════════════════════════
+
+  GENRE_PALETTES
+    hand-authored: Hand-authored: correct (author knew the films).
+    distilled:     Distilled: converged to same values from trajectory evidence.
+     Bonus: horror val refined from 0.20 → 0.15 across epochs.
+
+  TypefacePicker precondition
+    hand-authored: Hand-authored: ABSENT Typeface only (can fire before palette).
+    distilled:     Distilled: REQUIRES ColorPalette — learned from traj 2 failure
+     where script-italic fired into a vacuum and scored 2/5.
+
+  GENRE_TYPEFACES table
+    hand-authored: Hand-authored: embedded in TypefaceNerd as a dict literal.
+    distilled:     Distilled: extracted as a module-level lookup table, easier to edit.
+
+  MoodNerd (new)
+    hand-authored: Hand-authored: does not exist.
+    distilled:     Distilled: emerged in 4/5 briefs — posts a ToneKeywords item that
+     HeroImageGen reads to modulate block shapes, not just colors.
+
+The pipeline doesn't always beat the hand-authored version on known
+films — the author also watched Blade Runner. The value is in domains
+where the author's intuition is weaker: niche genres, non-Western
+cinema, or artifact types (book covers, album art) the author didn't
+design by hand. The LLM has seen all of those; the experience library is
+how we get that knowledge out of its weights and into editable Python.
+
+════════════════════════════════════════════════════════════════════════
+  End of narrative walkthrough.
+════════════════════════════════════════════════════════════════════════

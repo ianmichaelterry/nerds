@@ -1,0 +1,12 @@
+[project]
+name = "nerds"
+version = "0.1.0"
+description = "Computational caricature of a blackboard architecture for movie poster design"
+requires-python = ">=3.11"
+dependencies = [
+    "pillow>=10.0",
+    "numpy>=1.26",
+]
+
+[project.scripts]
+nerds = "main:main"
