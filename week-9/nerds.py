@@ -79,9 +79,9 @@ def _get_noun_project_auth() -> OAuth1 | None:
         return None
 
 
-def _fetch_icon(genre: str, accent_color: str) -> dict | None:
+def _fetch_icon(term: str, accent_color: str) -> dict | None:
     """
-    Search the Noun Project for a genre-relevant icon and download it.
+    Search the Noun Project for an icon matching *term* and download it.
 
     Returns dict with 'png_base64', 'icon_id', 'term', 'attribution'
     or None on failure.
@@ -90,9 +90,6 @@ def _fetch_icon(genre: str, accent_color: str) -> dict | None:
     if not auth:
         print("  [IconNerd] No Noun Project credentials found, skipping")
         return None
-
-    terms = GENRE_ICON_TERMS.get(genre, ["film", "movie", "camera"])
-    term = random.choice(terms)
 
     try:
         # Search for icons
@@ -131,6 +128,106 @@ def _fetch_icon(genre: str, accent_color: str) -> dict | None:
     except Exception as e:
         print(f"  [IconNerd] Noun Project fetch failed ({e})")
         return None
+
+
+# ---------------------------------------------------------------------------
+# OMDb API (plot keywords)
+# ---------------------------------------------------------------------------
+
+_OMDB_KEY_PATH = os.path.expanduser("~/.tokens/omdb-api")
+
+
+def _get_omdb_key() -> str | None:
+    """Load OMDb API key. Returns None if unavailable."""
+    try:
+        return open(_OMDB_KEY_PATH).read().strip()
+    except FileNotFoundError:
+        return None
+
+
+def _fetch_plot_keywords(title: str, year: int | None) -> list[str] | None:
+    """
+    Query OMDb for a movie's short plot, then extract nouns as keywords.
+
+    Returns a list of lowercase noun strings, or None on failure.
+    """
+    api_key = _get_omdb_key()
+    if not api_key:
+        print("  [KeywordNerd] No OMDb API key found, skipping")
+        return None
+
+    params = {"t": title, "apikey": api_key, "plot": "short"}
+    if year:
+        params["y"] = str(year)
+
+    try:
+        r = requests.get("https://www.omdbapi.com/", params=params, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        if data.get("Response") == "False":
+            print(f"  [KeywordNerd] OMDb: {data.get('Error', 'not found')}")
+            return None
+
+        plot = data.get("Plot", "")
+        if not plot or plot == "N/A":
+            print("  [KeywordNerd] OMDb returned no plot")
+            return None
+
+        print(f"  [KeywordNerd] OMDb plot: {plot}")
+        return _extract_nouns(plot)
+    except Exception as e:
+        print(f"  [KeywordNerd] OMDb fetch failed ({e})")
+        return None
+
+
+def _extract_nouns(text: str) -> list[str]:
+    """
+    Extract likely nouns from a short plot string using simple heuristics.
+
+    Uses a stop-word filter and part-of-speech-like heuristics rather than
+    a full NLP library. Words that survive filtering are likely nouns or
+    noun-adjacent terms useful for icon search.
+    """
+    _STOP_WORDS = {
+        "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+        "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+        "being", "has", "have", "had", "do", "does", "did", "will", "would",
+        "could", "should", "may", "might", "shall", "can", "need", "must",
+        "it", "its", "he", "she", "they", "them", "his", "her", "their",
+        "this", "that", "these", "those", "who", "whom", "which", "what",
+        "where", "when", "how", "why", "not", "no", "nor", "so", "if",
+        "then", "than", "too", "very", "just", "about", "up", "out", "off",
+        "over", "into", "through", "after", "before", "between", "under",
+        "again", "once", "here", "there", "all", "each", "every", "both",
+        "few", "more", "most", "other", "some", "such", "only", "own",
+        "same", "also", "while", "during", "until", "against", "above",
+        "below", "him", "himself", "herself", "itself", "themselves",
+        "we", "us", "our", "my", "me", "i", "you", "your",
+        # Common verbs that survive simple filtering
+        "find", "finds", "take", "takes", "make", "makes", "get", "gets",
+        "go", "goes", "come", "comes", "know", "knows", "think", "see",
+        "become", "becomes", "try", "tries", "set", "sets", "must",
+        "begins", "begin", "starts", "start", "ends", "end",
+        "along", "across", "around", "among",
+    }
+
+    # Also skip words ending in common verb/adjective suffixes
+    _VERB_SUFFIXES = ("ing", "tion", "ly", "ed", "ness", "ment", "ous", "ive",
+                      "able", "ible", "ful", "less")
+
+    import re
+    words = re.findall(r"[a-zA-Z]+", text.lower())
+    nouns = []
+    for w in words:
+        if len(w) <= 2:
+            continue
+        if w in _STOP_WORDS:
+            continue
+        # Skip words that look like verbs/adjectives/adverbs
+        if any(w.endswith(s) for s in _VERB_SUFFIXES):
+            continue
+        nouns.append(w)
+    return nouns
 
 
 # ---------------------------------------------------------------------------
@@ -455,6 +552,44 @@ class TitleParserNerd(Nerd):
         return [(NERDS.TitleChunks, props, Heat.HOT, 3)]
 
 
+class KeywordNerd(Nerd):
+    """Extracts plot-relevant keywords for icon search.
+
+    Queries the OMDb API for the movie's short plot string, then extracts
+    nouns as search keywords. If OMDb fails (no API key, movie not found,
+    no plot), falls back to genre-based icon terms from GENRE_ICON_TERMS.
+    """
+
+    def can_run(self, bb: Blackboard) -> bool:
+        return (super().can_run(bb) and bb.has(NERDS.MovieData)
+                and not bb.has(NERDS.Keywords))
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        movie = bb.pick(NERDS.MovieData)
+        if not movie:
+            return []
+
+        title = str(bb.get_property(movie, SCHEMA.name) or "")
+        year_lit = bb.get_property(movie, SCHEMA.datePublished)
+        year = int(year_lit) if year_lit else None
+        genre = str(bb.get_property(movie, SCHEMA.genre) or "drama")
+
+        keywords = _fetch_plot_keywords(title, year)
+        source = "omdb"
+        if not keywords:
+            # Fallback to genre icon terms
+            keywords = list(GENRE_ICON_TERMS.get(genre, ["film", "movie", "camera"]))
+            source = "genre"
+            print(f"  [KeywordNerd] Falling back to genre terms for '{genre}': {keywords}")
+
+        print(f"  [KeywordNerd] Keywords ({source}): {keywords}")
+        props = {
+            NERDS.keywordList: Literal(",".join(keywords)),
+            NERDS.keywordSource: Literal(source),
+        }
+        return [(NERDS.Keywords, props, Heat.HOT, 5)]
+
+
 class GenrePaletteNerd(Nerd):
     """Generates a color palette based on genre mood associations."""
 
@@ -590,43 +725,53 @@ class HeroImageNerd(Nerd):
 
 
 class IconNerd(Nerd):
-    """Fetches a genre-relevant icon from the Noun Project.
+    """Fetches a keyword-relevant icon from the Noun Project.
 
-    This nerd calls an external API (Noun Project) to get a real vector icon
-    related to the film's genre, downloads it as a tinted PNG, and stores the
-    base64-encoded image data on the blackboard. The renderer composites it
-    onto the poster as a central visual element.
-
-    This is the "not a toy" upgrade: real curated artwork from a professional
-    icon library, fetched via OAuth1 API, replacing colored rectangles.
+    Picks a Keywords item from the blackboard, selects a random subset of
+    keywords as a search query, and searches the Noun Project API. If the
+    search returns no results, retries up to 2 more times with different
+    random keyword selections before giving up.
     """
 
+    _MAX_RETRIES = 2
+
     def can_run(self, bb: Blackboard) -> bool:
-        return (super().can_run(bb) and bb.has(NERDS.MovieData)
+        return (super().can_run(bb) and bb.has(NERDS.Keywords)
                 and bb.has(NERDS.ColorPalette))
 
     def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
-        movie = bb.pick(NERDS.MovieData)
+        kw_item = bb.pick(NERDS.Keywords)
         palette = bb.pick(NERDS.ColorPalette)
-        if not movie or not palette:
+        if not kw_item or not palette:
             return []
 
-        genre = str(bb.get_property(movie, SCHEMA.genre) or "drama")
+        kw_str = str(bb.get_property(kw_item, NERDS.keywordList) or "")
+        keywords = [k.strip() for k in kw_str.split(",") if k.strip()]
+        if not keywords:
+            return []
+
         accent_hex = str(bb.get_property(palette, NERDS.accentColor) or "#cc6644")
 
-        print(f"  [IconNerd] Searching Noun Project for '{genre}' icons...")
-        icon_data = _fetch_icon(genre, accent_hex)
-        if not icon_data:
-            return []
+        # Try a random selection of keywords, retrying with different picks on failure
+        for attempt in range(1 + self._MAX_RETRIES):
+            n = min(len(keywords), random.randint(1, 3))
+            selected = random.sample(keywords, n)
+            term = " ".join(selected)
+            print(f"  [IconNerd] Attempt {attempt + 1}: searching Noun Project for '{term}'...")
+            icon_data = _fetch_icon(term, accent_hex)
+            if icon_data:
+                print(f"  [IconNerd] Got icon: '{icon_data['term']}' (id={icon_data['icon_id']})")
+                props = {
+                    NERDS.iconPngBase64: Literal(icon_data["png_base64"]),
+                    NERDS.iconId: Literal(icon_data["icon_id"]),
+                    NERDS.iconTerm: Literal(icon_data["term"]),
+                    NERDS.iconAttribution: Literal(icon_data["attribution"]),
+                    NERDS.iconSearchQuery: Literal(term),
+                }
+                return [(NERDS.IconImage, props, Heat.HOT, 4)]
 
-        print(f"  [IconNerd] Got icon: '{icon_data['term']}' (id={icon_data['icon_id']})")
-        props = {
-            NERDS.iconPngBase64: Literal(icon_data["png_base64"]),
-            NERDS.iconId: Literal(icon_data["icon_id"]),
-            NERDS.iconTerm: Literal(icon_data["term"]),
-            NERDS.iconAttribution: Literal(icon_data["attribution"]),
-        }
-        return [(NERDS.IconImage, props, Heat.HOT, 4)]
+        print(f"  [IconNerd] All {1 + self._MAX_RETRIES} attempts failed")
+        return []
 
 
 class GrainNerd(Nerd):
@@ -770,11 +915,16 @@ class PosterCriticNerd(Nerd):
         return [(NERDS.PosterCritique, props, Heat.MEDIUM, 1)]
 
 
+@dataclass
 class CompletionNerd(Nerd):
     """Declares the poster complete when critique score is high enough."""
 
+    min_tick: int = 0
+
     def can_run(self, bb: Blackboard) -> bool:
         if not super().can_run(bb):
+            return False
+        if bb.tick < self.min_tick:
             return False
         critiques = bb.query_items(NERDS.Critique)
         if not critiques:
@@ -803,6 +953,8 @@ def make_all_nerds() -> list[Nerd]:
                         shacl_shape=NERDS.MoviePickerShape),
         TitleParserNerd(name="TitleParser", heat=Heat.MEDIUM, cooldown_rate=3,
                         shacl_shape=NERDS.TitleParserShape),
+        KeywordNerd(name="KeywordExtractor", heat=Heat.HOT, cooldown_rate=99,
+                    shacl_shape=NERDS.KeywordShape),
         GenrePaletteNerd(name="GenrePalette", heat=Heat.MEDIUM, cooldown_rate=3,
                          shacl_shape=NERDS.GenrePaletteShape),
         TypefaceNerd(name="TypefacePicker", heat=Heat.MEDIUM, cooldown_rate=4,
@@ -820,5 +972,5 @@ def make_all_nerds() -> list[Nerd]:
         PosterCriticNerd(name="PosterCritic", heat=Heat.MEDIUM, cooldown_rate=3,
                          shacl_shape=NERDS.PosterCriticShape),
         CompletionNerd(name="CompletionJudge", heat=Heat.HOT, cooldown_rate=1,
-                       shacl_shape=NERDS.CompletionShape),
+                       shacl_shape=NERDS.CompletionShape, min_tick=30),
     ]

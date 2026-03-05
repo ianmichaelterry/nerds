@@ -105,6 +105,8 @@ def build_concept_scheme() -> Graph:
     # Leaf concepts (the actual item types nerds produce)
     add_concept(NERDS.MovieData, "Movie Data", NERDS.FoundationalArtifact,
                 "A film's metadata: title, director, cast, genre, year.")
+    add_concept(NERDS.Keywords, "Keywords", NERDS.FoundationalArtifact,
+                "Plot-derived or genre-derived search keywords for icon selection.")
     add_concept(NERDS.ColorPalette, "Color Palette", NERDS.VisualArtifact,
                 "Genre-derived key and accent colors.")
     add_concept(NERDS.HeroImage, "Hero Image", NERDS.VisualArtifact,
@@ -204,12 +206,19 @@ def build_shacl_shapes() -> Graph:
     g.add((hero_shape, RDFS.label, Literal("HeroImage precondition")))
     _has_type(hero_shape, NERDS.ColorPalette)
 
-    # IconNerd: needs MovieData + ColorPalette
+    # KeywordNerd: needs MovieData
+    keyword_shape = NERDS.KeywordShape
+    g.add((keyword_shape, RDF.type, SH.NodeShape))
+    g.add((keyword_shape, SH.targetNode, NERDS.Blackboard))
+    g.add((keyword_shape, RDFS.label, Literal("Keyword precondition")))
+    _has_type(keyword_shape, NERDS.MovieData)
+
+    # IconNerd: needs Keywords + ColorPalette
     icon_shape = NERDS.IconShape
     g.add((icon_shape, RDF.type, SH.NodeShape))
     g.add((icon_shape, SH.targetNode, NERDS.Blackboard))
     g.add((icon_shape, RDFS.label, Literal("Icon precondition")))
-    _has_type(icon_shape, NERDS.MovieData)
+    _has_type(icon_shape, NERDS.Keywords)
     _has_type(icon_shape, NERDS.ColorPalette)
 
     # GrainNerd: needs HeroImage

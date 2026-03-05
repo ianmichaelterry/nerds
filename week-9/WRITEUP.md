@@ -100,14 +100,15 @@ Remove the run-once gates. Keep the positive dependency checks.
 |---|---|---|
 | MoviePicker | *(unchanged -- run-once, queries Wikidata)* | `not bb.has(NERDS.MovieData)` |
 | TitleParser | `bb.has(MovieData) and not bb.has(TitleChunks)` | `bb.has(MovieData)` |
+| KeywordExtractor | *(new in week 9)* | `bb.has(MovieData) and not bb.has(Keywords)` |
 | GenrePalette | `bb.has(MovieData) and not bb.has(ColorPalette)` | `bb.has(MovieData)` |
 | TypefacePicker | `not bb.has(Typeface)` | *(removed -- just cooldown)* |
 | LayoutPicker | `not bb.has(Layout)` | *(removed -- just cooldown)* |
 | HeroImageGen | `bb.has(ColorPalette) and not bb.has(HeroImage)` | `bb.has(ColorPalette)` |
-| IconFetcher | `bb.has(MovieData) and bb.has(ColorPalette) and not bb.has(IconImage)` | `bb.has(MovieData) and bb.has(ColorPalette)` |
+| IconFetcher | `bb.has(MovieData) and bb.has(ColorPalette) and not bb.has(IconImage)` | `bb.has(Keywords) and bb.has(ColorPalette)` |
 | GrainEffect | `bb.has(HeroImage) and not bb.has(PostEffect)` | `bb.has(HeroImage)` |
 | Critic | *(no change -- already repeatable)* | *(no change)* |
-| CompletionJudge | *(no change -- gated by critique score)* | *(no change)* |
+| CompletionJudge | *(gated by critique score)* | *(+ min_tick=30)* |
 
 **`vocabulary.py` changes -- SHACL shapes:**
 
@@ -115,7 +116,7 @@ All `_lacks_type()` constraints removed from SHACL shapes, except on MoviePicker
 
 **`nerds.py` changes -- cooldown rates:**
 
-IconFetcher had `cooldown_rate=99`, which was a hack to enforce run-once (99 ticks of cooldown effectively meant "never again" in a 30-tick run). Reduced to `cooldown_rate=5` so it can fire multiple times with reasonable spacing. MoviePicker keeps its `cooldown_rate=99` since it remains run-once.
+IconFetcher had `cooldown_rate=99`, which was a hack to enforce run-once (99 ticks of cooldown effectively meant "never again" in a 30-tick run). Reduced to `cooldown_rate=5` so it can fire multiple times with reasonable spacing. MoviePicker and KeywordExtractor keep their `cooldown_rate=99` since they remain run-once (one movie per run, one set of keywords per movie).
 
 ### The result
 
@@ -216,9 +217,48 @@ The final poster render in `main.py` now looks for the latest (heat-weighted) pa
 
 If no PosterCritique exists (e.g., the system completed before the PosterCriticNerd fired), the render falls back to regular `bb.pick()` behavior.
 
-### CompletionJudge heat bump
+### CompletionJudge heat bump and minimum tick
 
 With more nerds eligible to run at any given tick, the CompletionJudge (which has `cooldown_rate=1` and is eligible every tick once the Critic scores >= 0.8) was getting crowded out by random selection. Its heat was bumped from `MEDIUM` to `HOT` to give it better odds of being selected promptly once the poster is ready.
+
+The CompletionJudge also gained a `min_tick` parameter (set to 30). It will not become eligible until the blackboard reaches tick 30, regardless of critique score. This guarantees the system has time to iterate on content -- producing multiple alternatives, re-rendering poster critiques, accumulating competing palettes and icons -- before jumping to completion. The max tick budget was raised to 50 to match, giving 20 ticks of runway after the CompletionJudge becomes eligible.
+
+---
+
+## KeywordNerd: plot-derived icon search terms
+
+### The problem
+
+In week 8, IconNerd searched the Noun Project using a hardcoded `GENRE_ICON_TERMS` mapping (e.g., `"sci-fi" -> ["robot", "spaceship", "planet", ...]`). This produced genre-appropriate icons but nothing specific to the actual movie. A sci-fi film about time travel and a sci-fi film about alien contact would get the same pool of search terms.
+
+### The fix: OMDb API + noun extraction
+
+A new `KeywordNerd` queries the [Open Movie Database API](https://www.omdbapi.com/) for the movie's short plot string, using both title and year to disambiguate (many titles are reused across decades). It then extracts likely nouns from the plot via stop-word filtering and verb/adjective suffix removal -- a lightweight heuristic that avoids an NLP dependency.
+
+The extracted keywords go onto the blackboard as a `Keywords` item with:
+- `nerds:keywordList` -- comma-separated keyword strings
+- `nerds:keywordSource` -- `"omdb"` or `"genre"` (indicating which path produced them)
+
+If the OMDb lookup fails (no API key, movie not found, no plot available), the nerd falls back to the existing `GENRE_ICON_TERMS` for the movie's genre. This is a graceful degradation: the system never fails to produce keywords, it just produces less specific ones.
+
+The KeywordNerd is run-once (`cooldown_rate=99`, gated by `not bb.has(Keywords)`) since there's one movie per run and the plot doesn't change.
+
+### IconNerd: keyword-driven search with retries
+
+The IconNerd now depends on `Keywords` + `ColorPalette` (was `MovieData` + `ColorPalette`). Instead of picking from a hardcoded genre term list, it:
+
+1. Picks a `Keywords` item from the blackboard.
+2. Selects a random subset of 1-3 keywords as a compound search query.
+3. Searches the Noun Project API with that query.
+4. If the search returns no results, retries up to **2 more times** with a different random keyword selection.
+5. If all 3 attempts fail, returns empty (goes on cooldown, will try again later with fresh keyword picks).
+
+This means the same movie can produce different icons on different IconNerd firings -- one run might search "robot planet", another "alien circuit" -- and each successful search adds a competing `IconImage` to the blackboard for the heat system to select among.
+
+### SHACL shape changes
+
+- New `KeywordShape` requires `MovieData` on the blackboard.
+- `IconShape` updated to require `Keywords` (was `MovieData`) + `ColorPalette`.
 
 ---
 
@@ -247,10 +287,10 @@ The font candidate order is now: Linux paths first (DejaVu Sans Bold/Regular), t
 
 | File | Purpose | Lines | New in week 9? |
 |---|---|---|---|
-| `main.py` | Tick loop, SHACL validation, nerd selection, approved-asset final render | ~410 | Modified |
+| `main.py` | Tick loop, SHACL validation, nerd selection, approved-asset final render | ~440 | Modified |
 | `blackboard.py` | RDF graph-backed blackboard with PROV-O provenance, fingerprint queries | ~215 | Modified |
-| `nerds.py` | 11 specialist nerds reading/writing RDF triples | ~810 | Modified (PosterCriticNerd added) |
-| `vocabulary.py` | Namespaces, SKOS concept scheme, SHACL shapes | ~260 | Modified (PosterCritique concept + shape) |
+| `nerds.py` | 12 specialist nerds reading/writing RDF triples | ~975 | Modified (PosterCriticNerd, KeywordNerd added; IconNerd reworked) |
+| `vocabulary.py` | Namespaces, SKOS concept scheme, SHACL shapes | ~260 | Modified (Keywords + PosterCritique concepts + shapes) |
 | `render.py` | PIL-based poster compositor (supports explicit picks) | ~410 | Modified |
 | `narrator.py` | Showboat-style markdown narrative generator | ~165 | No (from week 8) |
 | `output/temp/` | Temp poster images from PosterCriticNerd (cleared each run) | -- | New directory |
@@ -267,13 +307,16 @@ The font candidate order is now: Linux paths first (DejaVu Sans Bold/Regular), t
 - The completeness critic is a checklist, not aesthetic judgment.
 - The poster critic always says "passes" -- real visual evaluation is not yet implemented.
 - Multiple alternatives don't yet influence each other (no "this palette is better *because* of that layout").
+- Keyword extraction uses stop-word filtering, not real NLP -- it works well enough for short plot strings but wouldn't scale to longer text.
 
 **Abstractions (to be reused in the future):**
 - RDF graph blackboard with SKOS-typed items and PROV-O provenance.
 - SHACL preconditions: declarative, machine-readable nerd activation rules.
 - Schema.org vocabulary: movie data is web-standard, sourced from Wikidata SPARQL.
-- Noun Project API: real curated icons via OAuth1.
+- OMDb API: plot-derived keywords for content-aware icon search, with graceful fallback to genre terms.
+- Noun Project API: keyword-driven icon search via OAuth1, with retry on different keyword subsets.
 - Heat + thermal mass driving selection among competing alternatives.
 - Idempotent nerds: specialists that can run repeatedly, producing alternatives rather than filling slots.
 - Input fingerprinting: critics track what they've already evaluated, preventing duplicate work.
 - Approved-asset rendering: the final output reproduces an approved combination rather than re-rolling.
+- Minimum-tick gating: the CompletionJudge defers until tick 30, ensuring content iteration before wrap-up.

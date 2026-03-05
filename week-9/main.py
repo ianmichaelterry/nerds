@@ -83,6 +83,22 @@ def _narrate_nerd(nerd_name: str, bb: Blackboard, result_nodes: list) -> str:
         else:
             details.append(f'Title is a single chunk: **"{primary}"**. No subtitle.')
 
+    elif nerd_name == "KeywordExtractor" and result_nodes:
+        node = result_nodes[0]
+        kw_list = bb.get_property(node, NERDS.keywordList)
+        source = bb.get_property(node, NERDS.keywordSource)
+        keywords = str(kw_list).split(",") if kw_list else []
+        details.append(f"Extracted **{len(keywords)} keywords** (source: {source}):")
+        details.append(f"`{', '.join(keywords[:10])}`"
+                       + (f" ... (+{len(keywords)-10} more)" if len(keywords) > 10 else ""))
+        if str(source) == "omdb":
+            details.append("")
+            details.append("Keywords were extracted from the OMDb short plot by "
+                           "filtering stop words and verb/adjective suffixes.")
+        else:
+            details.append("")
+            details.append("OMDb lookup failed; fell back to genre-based icon terms.")
+
     elif nerd_name == "GenrePalette" and result_nodes:
         node = result_nodes[0]
         key_c = bb.get_property(node, NERDS.keyColor)
@@ -122,12 +138,10 @@ def _narrate_nerd(nerd_name: str, bb: Blackboard, result_nodes: list) -> str:
         node = result_nodes[0]
         term = bb.get_property(node, NERDS.iconTerm)
         icon_id = bb.get_property(node, NERDS.iconId)
-        details.append(f'Searched the **Noun Project API** (OAuth1) for genre-relevant icons. '
+        query = bb.get_property(node, NERDS.iconSearchQuery)
+        details.append(f'Searched the **Noun Project API** for keyword-derived icons '
+                       f'(query: "{query or term}"). '
                        f'Found and downloaded **"{term}"** (icon #{icon_id}) as a tinted PNG.')
-        details.append("")
-        details.append("This is the visual quality leap: a professionally designed icon "
-                       "from a curated library of millions, replacing the colored rectangles "
-                       "of week 7.")
 
     elif nerd_name == "GrainEffect" and result_nodes:
         node = result_nodes[0]
@@ -231,7 +245,7 @@ def select_nerd(nerds: list[Nerd], bb: Blackboard,
 # Main run
 # ---------------------------------------------------------------------------
 
-def run(seed: int | None = None, max_ticks: int = 30,
+def run(seed: int | None = None, max_ticks: int = 50,
         verbose: bool = False) -> Path:
     if seed is not None:
         random.seed(seed)
@@ -414,7 +428,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Semantic NERDS: Blackboard Poster Generator (Week 8)")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
-    parser.add_argument("--max-ticks", type=int, default=30, help="Maximum ticks")
+    parser.add_argument("--max-ticks", type=int, default=50, help="Maximum ticks")
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Show tick-by-tick log")
     args = parser.parse_args()
