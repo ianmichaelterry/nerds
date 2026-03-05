@@ -1,0 +1,321 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix nerds: <http://example.org/nerds/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema1: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+nerds:Blackboard a nerds:BlackboardSystem ;
+    rdfs:label "NERDS Blackboard" ;
+    nerds:contains nerds:item_0,
+        nerds:item_1,
+        nerds:item_10,
+        nerds:item_2,
+        nerds:item_3,
+        nerds:item_4,
+        nerds:item_5,
+        nerds:item_6,
+        nerds:item_7,
+        nerds:item_8,
+        nerds:item_9 .
+
+nerds:ColorPalette a skos:Concept ;
+    rdfs:comment "Genre-derived key and accent colors." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Color Palette"@en .
+
+nerds:Completion a skos:Concept ;
+    rdfs:comment "Signal that the poster is done." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Completion"@en .
+
+nerds:FoundationalArtifact a skos:Concept ;
+    rdfs:comment "Seed data that everything else derives from." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Foundational Artifact"@en .
+
+nerds:HeroImage a skos:Concept ;
+    rdfs:comment "Procedural color-field imagery for the poster body." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Hero Image"@en .
+
+nerds:IconImage a skos:Concept ;
+    rdfs:comment "Genre-relevant icon from the Noun Project, composited onto the poster." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Icon Image"@en .
+
+nerds:Layout a skos:Concept ;
+    rdfs:comment "Poster layout template with y-positions and alignment." ;
+    skos:broader nerds:StructuralArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Layout"@en .
+
+nerds:MovieData a skos:Concept ;
+    rdfs:comment "A film's metadata: title, director, cast, genre, year." ;
+    skos:broader nerds:FoundationalArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Movie Data"@en .
+
+nerds:PostEffect a skos:Concept ;
+    rdfs:comment "Film grain, vignette, or posterization flags." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Post Effect"@en .
+
+nerds:StructuralArtifact a skos:Concept ;
+    rdfs:comment "Layout and spatial organization." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Structural Artifact"@en .
+
+nerds:TitleChunks a skos:Concept ;
+    rdfs:comment "Primary and secondary title text segments." ;
+    skos:broader nerds:TypographicArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Title Chunks"@en .
+
+nerds:Typeface a skos:Concept ;
+    rdfs:comment "Selected typeface name, style, and weight." ;
+    skos:broader nerds:TypographicArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Typeface"@en .
+
+nerds:activity_CompletionJudge_tick11_item_10 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.177299"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_CompletionJudge .
+
+nerds:activity_Critic_tick10_item_9 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.176085"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_Critic_tick5_item_4 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.163907"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_GenrePalette_tick3_item_2 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:38.346934"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_GenrePalette .
+
+nerds:activity_GrainEffect_tick9_item_8 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.174709"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_GrainEffect .
+
+nerds:activity_HeroImageGen_tick8_item_7 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.172617"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_HeroImageGen .
+
+nerds:activity_IconFetcher_tick4_item_3 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.158531"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_IconFetcher .
+
+nerds:activity_LayoutPicker_tick7_item_6 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.170356"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_LayoutPicker .
+
+nerds:activity_MoviePicker_tick2_item_1 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:38.339044"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_MoviePicker .
+
+nerds:activity_TitleParser_tick6_item_5 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:39.167265"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TypefacePicker_tick1_item_0 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:40:28.401450"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TypefacePicker .
+
+nerds:item_0 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 2 ;
+    nerds:typefaceName "script-italic" ;
+    nerds:typefaceStyle "script" ;
+    nerds:typefaceWeight "italic" ;
+    dcterms:created 1 ;
+    dcterms:identifier "item_0" ;
+    dcterms:type nerds:Typeface ;
+    prov:wasAttributedTo nerds:agent_TypefacePicker ;
+    prov:wasGeneratedBy nerds:activity_TypefacePicker_tick1_item_0 .
+
+nerds:item_1 a prov:Entity ;
+    nerds:genreLabel "romantic comedy" ;
+    nerds:heat nerds:Hot ;
+    nerds:thermalMass 5 ;
+    dcterms:created 2 ;
+    dcterms:identifier "item_1" ;
+    dcterms:type nerds:MovieData ;
+    schema1:actor "Hermann Thimig, Victor Janson, Paul Graetz, Paul Biensfeldt, Edith Meller" ;
+    schema1:datePublished "1921"^^xsd:gYear ;
+    schema1:director "Ernst Lubitsch" ;
+    schema1:genre "drama" ;
+    schema1:name "The Wild Cat" ;
+    rdfs:seeAlso <http://www.wikidata.org/entity/Q152447> ;
+    prov:wasAttributedTo nerds:agent_MoviePicker ;
+    prov:wasGeneratedBy nerds:activity_MoviePicker_tick2_item_1 .
+
+nerds:item_10 a prov:Entity ;
+    nerds:declared true ;
+    nerds:heat nerds:Hot ;
+    nerds:thermalMass 10 ;
+    dcterms:created 11 ;
+    dcterms:identifier "item_10" ;
+    dcterms:type nerds:Completion ;
+    prov:wasAttributedTo nerds:agent_CompletionJudge ;
+    prov:wasGeneratedBy nerds:activity_CompletionJudge_tick11_item_10 .
+
+nerds:item_2 a prov:Entity ;
+    nerds:accentColor "#42a599" ;
+    nerds:heat nerds:Cold ;
+    nerds:keyColor "#354859" ;
+    nerds:midColor "#3b7679" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 3 ;
+    dcterms:identifier "item_2" ;
+    dcterms:type nerds:ColorPalette ;
+    schema1:genre "drama" ;
+    prov:wasAttributedTo nerds:agent_GenrePalette ;
+    prov:wasGeneratedBy nerds:activity_GenrePalette_tick3_item_2 .
+
+nerds:item_3 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:iconAttribution "Flashlight by Lakota from Noun Project" ;
+    nerds:iconId "5308770" ;
+    nerds:iconPngBase64 "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" ;
+    nerds:iconTerm "Flashlight" ;
+    nerds:thermalMass 4 ;
+    dcterms:created 4 ;
+    dcterms:identifier "item_3" ;
+    dcterms:type nerds:IconImage ;
+    prov:wasAttributedTo nerds:agent_IconFetcher ;
+    prov:wasGeneratedBy nerds:activity_IconFetcher_tick4_item_3 .
+
+nerds:item_4 a prov:Entity ;
+    nerds:completeness "0.5"^^xsd:float ;
+    nerds:critiqueTick 5 ;
+    nerds:heat nerds:Cold ;
+    nerds:issues "missing_title,missing_layout,missing_hero" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 5 ;
+    dcterms:identifier "item_4" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick5_item_4 .
+
+nerds:item_5 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The" ;
+    nerds:secondaryTitle "Wild Cat" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 6 ;
+    dcterms:identifier "item_5" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick6_item_5 .
+
+nerds:item_6 a prov:Entity ;
+    nerds:creditsY "0.85"^^xsd:float ;
+    nerds:heat nerds:Hot ;
+    nerds:imageH "0.48"^^xsd:float ;
+    nerds:imageY "0.14"^^xsd:float ;
+    nerds:layoutName "split-diagonal" ;
+    nerds:taglineY "0.66"^^xsd:float ;
+    nerds:thermalMass 4 ;
+    nerds:titleAlign "left" ;
+    nerds:titleY "0.04"^^xsd:float ;
+    dcterms:created 7 ;
+    dcterms:identifier "item_6" ;
+    dcterms:type nerds:Layout ;
+    prov:wasAttributedTo nerds:agent_LayoutPicker ;
+    prov:wasGeneratedBy nerds:activity_LayoutPicker_tick7_item_6 .
+
+nerds:item_7 a prov:Entity ;
+    nerds:blockCount 7 ;
+    nerds:blockData "0.013,0.155,0.295,0.214,#4d326e,0.56;0.031,0.268,0.212,0.669,#315143,0.75;0.345,0.110,0.706,0.480,#38a1af,0.67;0.431,0.312,0.584,0.650,#4d5b4e,0.94;0.362,0.041,0.320,0.520,#376157,0.71;0.107,0.479,0.446,0.221,#285e8b,0.86;0.473,0.481,0.570,0.641,#3fb880,0.65" ;
+    nerds:heat nerds:Medium ;
+    nerds:thermalMass 3 ;
+    dcterms:created 8 ;
+    dcterms:identifier "item_7" ;
+    dcterms:type nerds:HeroImage ;
+    prov:wasAttributedTo nerds:agent_HeroImageGen ;
+    prov:wasGeneratedBy nerds:activity_HeroImageGen_tick8_item_7 .
+
+nerds:item_8 a prov:Entity ;
+    nerds:effects "vignette" ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 1 ;
+    dcterms:created 9 ;
+    dcterms:identifier "item_8" ;
+    dcterms:type nerds:PostEffect ;
+    prov:wasAttributedTo nerds:agent_GrainEffect ;
+    prov:wasGeneratedBy nerds:activity_GrainEffect_tick9_item_8 .
+
+nerds:item_9 a prov:Entity ;
+    nerds:completeness "1.0"^^xsd:float ;
+    nerds:critiqueTick 10 ;
+    nerds:heat nerds:Cold ;
+    nerds:issues "none" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 10 ;
+    dcterms:identifier "item_9" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick10_item_9 .
+
+nerds:Critique a skos:Concept ;
+    rdfs:comment "Completeness evaluation with issue list and score." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Critique"@en .
+
+nerds:MetaArtifact a skos:Concept ;
+    rdfs:comment "Evaluation, critique, and completion signals." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Meta Artifact"@en .
+
+nerds:TypographicArtifact a skos:Concept ;
+    rdfs:comment "Title text and typeface selections." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Typographic Artifact"@en .
+
+nerds:agent_CompletionJudge a prov:SoftwareAgent ;
+    rdfs:label "CompletionJudge" .
+
+nerds:agent_GenrePalette a prov:SoftwareAgent ;
+    rdfs:label "GenrePalette" .
+
+nerds:agent_GrainEffect a prov:SoftwareAgent ;
+    rdfs:label "GrainEffect" .
+
+nerds:agent_HeroImageGen a prov:SoftwareAgent ;
+    rdfs:label "HeroImageGen" .
+
+nerds:agent_IconFetcher a prov:SoftwareAgent ;
+    rdfs:label "IconFetcher" .
+
+nerds:agent_LayoutPicker a prov:SoftwareAgent ;
+    rdfs:label "LayoutPicker" .
+
+nerds:agent_MoviePicker a prov:SoftwareAgent ;
+    rdfs:label "MoviePicker" .
+
+nerds:agent_TitleParser a prov:SoftwareAgent ;
+    rdfs:label "TitleParser" .
+
+nerds:agent_TypefacePicker a prov:SoftwareAgent ;
+    rdfs:label "TypefacePicker" .
+
+nerds:VisualArtifact a skos:Concept ;
+    rdfs:comment "Color, imagery, and post-processing data." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Visual Artifact"@en .
+
+nerds:agent_Critic a prov:SoftwareAgent ;
+    rdfs:label "Critic" .
+
+nerds:PosterArtifact a skos:ConceptScheme ;
+    rdfs:comment "Concept scheme for typed items on the NERDS blackboard." ;
+    skos:prefLabel "Poster Artifact Types"@en .
+

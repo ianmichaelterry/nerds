@@ -1,0 +1,433 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix nerds: <http://example.org/nerds/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema1: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+nerds:Blackboard a nerds:BlackboardSystem ;
+    rdfs:label "NERDS Blackboard" ;
+    nerds:contains nerds:item_0,
+        nerds:item_1,
+        nerds:item_10,
+        nerds:item_11,
+        nerds:item_12,
+        nerds:item_13,
+        nerds:item_14,
+        nerds:item_15,
+        nerds:item_16,
+        nerds:item_2,
+        nerds:item_3,
+        nerds:item_4,
+        nerds:item_5,
+        nerds:item_6,
+        nerds:item_7,
+        nerds:item_8,
+        nerds:item_9 .
+
+nerds:IconImage a skos:Concept ;
+    rdfs:comment "Genre-relevant icon from the Noun Project, composited onto the poster." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Icon Image"@en .
+
+nerds:PostEffect a skos:Concept ;
+    rdfs:comment "Film grain, vignette, or posterization flags." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Post Effect"@en .
+
+nerds:ColorPalette a skos:Concept ;
+    rdfs:comment "Genre-derived key and accent colors." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Color Palette"@en .
+
+nerds:Completion a skos:Concept ;
+    rdfs:comment "Signal that the poster is done." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Completion"@en .
+
+nerds:FoundationalArtifact a skos:Concept ;
+    rdfs:comment "Seed data that everything else derives from." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Foundational Artifact"@en .
+
+nerds:HeroImage a skos:Concept ;
+    rdfs:comment "Procedural color-field imagery for the poster body." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Hero Image"@en .
+
+nerds:StructuralArtifact a skos:Concept ;
+    rdfs:comment "Layout and spatial organization." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Structural Artifact"@en .
+
+nerds:activity_CompletionJudge_tick17_item_16 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:54.074964"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_CompletionJudge .
+
+nerds:activity_Critic_tick12_item_11 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.655889"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_Critic_tick15_item_14 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.676565"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_Critic_tick4_item_3 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.534523"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_GenrePalette_tick6_item_5 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.548340"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_GenrePalette .
+
+nerds:activity_HeroImageGen_tick13_item_12 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.663892"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_HeroImageGen .
+
+nerds:activity_LayoutPicker_tick10_item_9 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.639015"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_LayoutPicker .
+
+nerds:activity_LayoutPicker_tick14_item_13 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.670551"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_LayoutPicker .
+
+nerds:activity_LayoutPicker_tick7_item_6 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.554483"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_LayoutPicker .
+
+nerds:activity_MoviePicker_tick16_item_15 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:54.060348"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_MoviePicker .
+
+nerds:activity_MoviePicker_tick2_item_1 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.517310"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_MoviePicker .
+
+nerds:activity_MoviePicker_tick9_item_8 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.630230"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_MoviePicker .
+
+nerds:activity_TitleParser_tick3_item_2 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.527243"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick8_item_7 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.558531"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TypefacePicker_tick11_item_10 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:46.647552"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TypefacePicker .
+
+nerds:activity_TypefacePicker_tick1_item_0 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:33.556630"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TypefacePicker .
+
+nerds:activity_TypefacePicker_tick5_item_4 a prov:Activity ;
+    prov:startedAtTime "2026-03-04T16:47:39.540850"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TypefacePicker .
+
+nerds:item_0 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 2 ;
+    nerds:typefaceName "script-italic" ;
+    nerds:typefaceStyle "script" ;
+    nerds:typefaceWeight "italic" ;
+    dcterms:created 1 ;
+    dcterms:identifier "item_0" ;
+    dcterms:type nerds:Typeface ;
+    prov:wasAttributedTo nerds:agent_TypefacePicker ;
+    prov:wasGeneratedBy nerds:activity_TypefacePicker_tick1_item_0 .
+
+nerds:item_1 a prov:Entity ;
+    nerds:genreLabel "drama film" ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 5 ;
+    dcterms:created 2 ;
+    dcterms:identifier "item_1" ;
+    dcterms:type nerds:MovieData ;
+    schema1:actor "Edith Storey, Antonio Moreno, Charles Kent" ;
+    schema1:datePublished "1916"^^xsd:gYear ;
+    schema1:director "George D. Baker" ;
+    schema1:genre "drama" ;
+    schema1:name "The Tarantula" ;
+    rdfs:seeAlso <http://www.wikidata.org/entity/Q21183934> ;
+    prov:wasAttributedTo nerds:agent_MoviePicker ;
+    prov:wasGeneratedBy nerds:activity_MoviePicker_tick2_item_1 .
+
+nerds:item_10 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 2 ;
+    nerds:typefaceName "sans-light" ;
+    nerds:typefaceStyle "sans" ;
+    nerds:typefaceWeight "light" ;
+    dcterms:created 11 ;
+    dcterms:identifier "item_10" ;
+    dcterms:type nerds:Typeface ;
+    prov:wasAttributedTo nerds:agent_TypefacePicker ;
+    prov:wasGeneratedBy nerds:activity_TypefacePicker_tick11_item_10 .
+
+nerds:item_11 a prov:Entity ;
+    nerds:completeness "0.6666666666666666"^^xsd:float ;
+    nerds:critiqueTick 12 ;
+    nerds:heat nerds:Cold ;
+    nerds:issues "missing_hero,missing_icon" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 12 ;
+    dcterms:identifier "item_11" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick12_item_11 .
+
+nerds:item_12 a prov:Entity ;
+    nerds:blockCount 7 ;
+    nerds:blockData "0.499,0.255,0.273,0.176,#4ea595,0.53;0.211,0.032,0.505,0.698,#25574a,0.88;0.057,0.442,0.801,0.573,#32815f,0.81;0.002,0.361,0.776,0.685,#309e99,0.49;0.319,0.304,0.322,0.569,#3c3568,0.58;0.244,0.056,0.490,0.692,#537f5f,0.76;0.473,0.043,0.589,0.188,#388f8d,0.93" ;
+    nerds:heat nerds:Hot ;
+    nerds:thermalMass 3 ;
+    dcterms:created 13 ;
+    dcterms:identifier "item_12" ;
+    dcterms:type nerds:HeroImage ;
+    prov:wasAttributedTo nerds:agent_HeroImageGen ;
+    prov:wasGeneratedBy nerds:activity_HeroImageGen_tick13_item_12 .
+
+nerds:item_13 a prov:Entity ;
+    nerds:creditsY "0.9"^^xsd:float ;
+    nerds:heat nerds:Cold ;
+    nerds:imageH "0.55"^^xsd:float ;
+    nerds:imageY "0.0"^^xsd:float ;
+    nerds:layoutName "bottom-heavy" ;
+    nerds:taglineY "0.76"^^xsd:float ;
+    nerds:thermalMass 4 ;
+    nerds:titleAlign "center" ;
+    nerds:titleY "0.58"^^xsd:float ;
+    dcterms:created 14 ;
+    dcterms:identifier "item_13" ;
+    dcterms:type nerds:Layout ;
+    prov:wasAttributedTo nerds:agent_LayoutPicker ;
+    prov:wasGeneratedBy nerds:activity_LayoutPicker_tick14_item_13 .
+
+nerds:item_14 a prov:Entity ;
+    nerds:completeness "0.8333333333333334"^^xsd:float ;
+    nerds:critiqueTick 15 ;
+    nerds:heat nerds:Cold ;
+    nerds:issues "missing_icon" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 15 ;
+    dcterms:identifier "item_14" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick15_item_14 .
+
+nerds:item_15 a prov:Entity ;
+    nerds:genreLabel "drama film" ;
+    nerds:heat nerds:Medium ;
+    nerds:thermalMass 5 ;
+    dcterms:created 16 ;
+    dcterms:identifier "item_15" ;
+    dcterms:type nerds:MovieData ;
+    schema1:actor "Angela Lansbury, Donna Reed, George Sanders, Hurd Hatfield, Lilian Bond" ;
+    schema1:datePublished "1945"^^xsd:gYear ;
+    schema1:director "Albert Lewin" ;
+    schema1:genre "drama" ;
+    schema1:name "The Picture of Dorian Gray" ;
+    rdfs:seeAlso <http://www.wikidata.org/entity/Q1167299> ;
+    prov:wasAttributedTo nerds:agent_MoviePicker ;
+    prov:wasGeneratedBy nerds:activity_MoviePicker_tick16_item_15 .
+
+nerds:item_16 a prov:Entity ;
+    nerds:declared true ;
+    nerds:heat nerds:Hot ;
+    nerds:thermalMass 10 ;
+    dcterms:created 17 ;
+    dcterms:identifier "item_16" ;
+    dcterms:type nerds:Completion ;
+    prov:wasAttributedTo nerds:agent_CompletionJudge ;
+    prov:wasGeneratedBy nerds:activity_CompletionJudge_tick17_item_16 .
+
+nerds:item_2 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The" ;
+    nerds:secondaryTitle "Tarantula" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 3 ;
+    dcterms:identifier "item_2" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick3_item_2 .
+
+nerds:item_3 a prov:Entity ;
+    nerds:completeness "0.3333333333333333"^^xsd:float ;
+    nerds:critiqueTick 4 ;
+    nerds:heat nerds:Cold ;
+    nerds:issues "missing_palette,missing_layout,missing_hero,missing_icon" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 4 ;
+    dcterms:identifier "item_3" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick4_item_3 .
+
+nerds:item_4 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 2 ;
+    nerds:typefaceName "script-italic" ;
+    nerds:typefaceStyle "script" ;
+    nerds:typefaceWeight "italic" ;
+    dcterms:created 5 ;
+    dcterms:identifier "item_4" ;
+    dcterms:type nerds:Typeface ;
+    prov:wasAttributedTo nerds:agent_TypefacePicker ;
+    prov:wasGeneratedBy nerds:activity_TypefacePicker_tick5_item_4 .
+
+nerds:item_5 a prov:Entity ;
+    nerds:accentColor "#42a597" ;
+    nerds:heat nerds:Cold ;
+    nerds:keyColor "#354859" ;
+    nerds:midColor "#3b7778" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 6 ;
+    dcterms:identifier "item_5" ;
+    dcterms:type nerds:ColorPalette ;
+    schema1:genre "drama" ;
+    prov:wasAttributedTo nerds:agent_GenrePalette ;
+    prov:wasGeneratedBy nerds:activity_GenrePalette_tick6_item_5 .
+
+nerds:item_6 a prov:Entity ;
+    nerds:creditsY "0.85"^^xsd:float ;
+    nerds:heat nerds:Cold ;
+    nerds:imageH "0.48"^^xsd:float ;
+    nerds:imageY "0.14"^^xsd:float ;
+    nerds:layoutName "split-diagonal" ;
+    nerds:taglineY "0.66"^^xsd:float ;
+    nerds:thermalMass 4 ;
+    nerds:titleAlign "left" ;
+    nerds:titleY "0.04"^^xsd:float ;
+    dcterms:created 7 ;
+    dcterms:identifier "item_6" ;
+    dcterms:type nerds:Layout ;
+    prov:wasAttributedTo nerds:agent_LayoutPicker ;
+    prov:wasGeneratedBy nerds:activity_LayoutPicker_tick7_item_6 .
+
+nerds:item_7 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The" ;
+    nerds:secondaryTitle "Tarantula" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 8 ;
+    dcterms:identifier "item_7" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick8_item_7 .
+
+nerds:item_8 a prov:Entity ;
+    nerds:genreLabel "adventure film" ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 5 ;
+    dcterms:created 9 ;
+    dcterms:identifier "item_8" ;
+    dcterms:type nerds:MovieData ;
+    schema1:actor "Lou Tellegen, Dorothy Davenport, Tom Forman" ;
+    schema1:datePublished "1915"^^xsd:gYear ;
+    schema1:director "George Melford" ;
+    schema1:genre "adventure" ;
+    schema1:name "The Explorer" ;
+    rdfs:seeAlso <http://www.wikidata.org/entity/Q3986860> ;
+    prov:wasAttributedTo nerds:agent_MoviePicker ;
+    prov:wasGeneratedBy nerds:activity_MoviePicker_tick9_item_8 .
+
+nerds:item_9 a prov:Entity ;
+    nerds:creditsY "0.85"^^xsd:float ;
+    nerds:heat nerds:Medium ;
+    nerds:imageH "0.48"^^xsd:float ;
+    nerds:imageY "0.14"^^xsd:float ;
+    nerds:layoutName "split-diagonal" ;
+    nerds:taglineY "0.66"^^xsd:float ;
+    nerds:thermalMass 4 ;
+    nerds:titleAlign "left" ;
+    nerds:titleY "0.04"^^xsd:float ;
+    dcterms:created 10 ;
+    dcterms:identifier "item_9" ;
+    dcterms:type nerds:Layout ;
+    prov:wasAttributedTo nerds:agent_LayoutPicker ;
+    prov:wasGeneratedBy nerds:activity_LayoutPicker_tick10_item_9 .
+
+nerds:MetaArtifact a skos:Concept ;
+    rdfs:comment "Evaluation, critique, and completion signals." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Meta Artifact"@en .
+
+nerds:TitleChunks a skos:Concept ;
+    rdfs:comment "Primary and secondary title text segments." ;
+    skos:broader nerds:TypographicArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Title Chunks"@en .
+
+nerds:TypographicArtifact a skos:Concept ;
+    rdfs:comment "Title text and typeface selections." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Typographic Artifact"@en .
+
+nerds:agent_CompletionJudge a prov:SoftwareAgent ;
+    rdfs:label "CompletionJudge" .
+
+nerds:agent_GenrePalette a prov:SoftwareAgent ;
+    rdfs:label "GenrePalette" .
+
+nerds:agent_HeroImageGen a prov:SoftwareAgent ;
+    rdfs:label "HeroImageGen" .
+
+nerds:Critique a skos:Concept ;
+    rdfs:comment "Completeness evaluation with issue list and score." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Critique"@en .
+
+nerds:Layout a skos:Concept ;
+    rdfs:comment "Poster layout template with y-positions and alignment." ;
+    skos:broader nerds:StructuralArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Layout"@en .
+
+nerds:MovieData a skos:Concept ;
+    rdfs:comment "A film's metadata: title, director, cast, genre, year." ;
+    skos:broader nerds:FoundationalArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Movie Data"@en .
+
+nerds:Typeface a skos:Concept ;
+    rdfs:comment "Selected typeface name, style, and weight." ;
+    skos:broader nerds:TypographicArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Typeface"@en .
+
+nerds:VisualArtifact a skos:Concept ;
+    rdfs:comment "Color, imagery, and post-processing data." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Visual Artifact"@en .
+
+nerds:agent_TitleParser a prov:SoftwareAgent ;
+    rdfs:label "TitleParser" .
+
+nerds:agent_Critic a prov:SoftwareAgent ;
+    rdfs:label "Critic" .
+
+nerds:agent_LayoutPicker a prov:SoftwareAgent ;
+    rdfs:label "LayoutPicker" .
+
+nerds:agent_MoviePicker a prov:SoftwareAgent ;
+    rdfs:label "MoviePicker" .
+
+nerds:agent_TypefacePicker a prov:SoftwareAgent ;
+    rdfs:label "TypefacePicker" .
+
+nerds:PosterArtifact a skos:ConceptScheme ;
+    rdfs:comment "Concept scheme for typed items on the NERDS blackboard." ;
+    skos:prefLabel "Poster Artifact Types"@en .
+
