@@ -113,6 +113,8 @@ def build_concept_scheme() -> Graph:
                 "Procedural color-field imagery for the poster body.")
     add_concept(NERDS.IconImage, "Icon Image", NERDS.VisualArtifact,
                 "Genre-relevant icon from the Noun Project, composited onto the poster.")
+    add_concept(NERDS.CompositeImage, "Composite Image", NERDS.VisualArtifact,
+                "Two or more images composited via ImageMagick, tracked by XMP sidecar.")
     add_concept(NERDS.PostEffect, "Post Effect", NERDS.VisualArtifact,
                 "Film grain, vignette, or posterization flags.")
     add_concept(NERDS.TitleChunks, "Title Chunks", NERDS.TypographicArtifact,
@@ -127,6 +129,10 @@ def build_concept_scheme() -> Graph:
                 "Visual critique of a rendered poster from a specific set of assets.")
     add_concept(NERDS.Completion, "Completion", NERDS.MetaArtifact,
                 "Signal that the poster is done.")
+    add_concept(NERDS.VisibilityCritique, "Visibility Critique", NERDS.MetaArtifact,
+                "Per-source visibility scores for a composite image.")
+    add_concept(NERDS.ContrastCritique, "Contrast Critique", NERDS.MetaArtifact,
+                "Inter-source contrast measurement for a composite image.")
 
     return g
 
@@ -228,6 +234,14 @@ def build_shacl_shapes() -> Graph:
     g.add((grain_shape, RDFS.label, Literal("Grain precondition")))
     _has_type(grain_shape, NERDS.HeroImage)
 
+    # CompositeNerd: needs at least a ColorPalette (visual content exists);
+    # Python can_run() checks for >= 2 image items.
+    composite_shape = NERDS.CompositeShape
+    g.add((composite_shape, RDF.type, SH.NodeShape))
+    g.add((composite_shape, SH.targetNode, NERDS.Blackboard))
+    g.add((composite_shape, RDFS.label, Literal("Composite precondition")))
+    _has_type(composite_shape, NERDS.ColorPalette)
+
     # PosterCriticNerd: needs MovieData, TitleChunks, and ColorPalette
     poster_critic_shape = NERDS.PosterCriticShape
     g.add((poster_critic_shape, RDF.type, SH.NodeShape))
@@ -253,5 +267,19 @@ def build_shacl_shapes() -> Graph:
     g.add((completion_shape, RDFS.label, Literal("Completion precondition")))
     _has_type(completion_shape, NERDS.Critique)
     _lacks_type(completion_shape, NERDS.Completion)
+
+    # VisibilityCriticNerd: needs a CompositeImage to critique
+    vis_crit_shape = NERDS.VisibilityCritiqueShape
+    g.add((vis_crit_shape, RDF.type, SH.NodeShape))
+    g.add((vis_crit_shape, SH.targetNode, NERDS.Blackboard))
+    g.add((vis_crit_shape, RDFS.label, Literal("VisibilityCritique precondition")))
+    _has_type(vis_crit_shape, NERDS.CompositeImage)
+
+    # ContrastCriticNerd: needs a CompositeImage to critique
+    con_crit_shape = NERDS.ContrastCritiqueShape
+    g.add((con_crit_shape, RDF.type, SH.NodeShape))
+    g.add((con_crit_shape, SH.targetNode, NERDS.Blackboard))
+    g.add((con_crit_shape, RDFS.label, Literal("ContrastCritique precondition")))
+    _has_type(con_crit_shape, NERDS.CompositeImage)
 
     return g

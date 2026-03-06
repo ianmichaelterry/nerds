@@ -157,6 +157,10 @@ class Blackboard:
         """Get all values for a property on an item."""
         return list(self.graph.objects(item, predicate))
 
+    def set_heat(self, item: URIRef, heat: Heat):
+        """Override an item's heat level."""
+        self.graph.set((item, NERDS.heat, HEAT_URIS[heat]))
+
     def decay_heat(self):
         """Cool everything down one notch, respecting thermal mass."""
         for item in self.graph.subjects(RDF.type, PROV.Entity):

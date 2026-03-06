@@ -153,6 +153,41 @@ def _narrate_nerd(nerd_name: str, bb: Blackboard, result_nodes: list) -> str:
         else:
             details.append("No post-processing effects this time (all coin flips came up tails).")
 
+    elif nerd_name == "Compositor" and result_nodes:
+        node = result_nodes[0]
+        w = bb.get_property(node, NERDS.compositeWidth)
+        h = bb.get_property(node, NERDS.compositeHeight)
+        ox = bb.get_property(node, NERDS.overlayOffsetX)
+        oy = bb.get_property(node, NERDS.overlayOffsetY)
+        xmp = bb.get_property(node, NERDS.compositeXmpPath)
+        details.append(f"Composited two images using **ImageMagick** "
+                       f"(overlay offset: {ox}, {oy}) producing a {w}\u00d7{h} result.")
+        if xmp:
+            details.append(f"XMP sidecar tracking source positions: `{xmp}`")
+
+    elif nerd_name == "VisibilityCritic" and result_nodes:
+        node = result_nodes[0]
+        score = bb.get_property(node, NERDS.visibilityScore)
+        scores_str = bb.get_property(node, NERDS.sourceScores)
+        pct = f"{float(score):.0%}" if score else "?"
+        details.append(f"Analyzed source visibility in a composite: "
+                       f"overall **{pct}**.")
+        if scores_str:
+            details.append(f"Per-source scores: `{scores_str}`")
+        if score and float(score) < 0.2:
+            details.append("Poor visibility — composite demoted to COLD.")
+
+    elif nerd_name == "ContrastCritic" and result_nodes:
+        node = result_nodes[0]
+        score = bb.get_property(node, NERDS.contrastScore)
+        dist = bb.get_property(node, NERDS.minPairwiseDistance)
+        pct = f"{float(score):.0%}" if score else "?"
+        dist_str = f"{float(dist):.1f}" if dist else "?"
+        details.append(f"Measured inter-source contrast in a composite: "
+                       f"score **{pct}** (min RGB distance: {dist_str}).")
+        if score and float(score) < 0.15:
+            details.append("Low contrast — composite demoted to COLD.")
+
     elif nerd_name == "Critic" and result_nodes:
         node = result_nodes[0]
         completeness = bb.get_property(node, NERDS.completeness)
@@ -329,6 +364,7 @@ def run(seed: int | None = None, max_ticks: int = 50,
             ('typeface', NERDS.usedTypeface),
             ('effect',  NERDS.usedEffect),
             ('icon',    NERDS.usedIcon),
+            ('composite', NERDS.usedComposite),
         ]:
             val = bb.get_property(approved, pred)
             if val:

@@ -320,3 +320,106 @@ The font candidate order is now: Linux paths first (DejaVu Sans Bold/Regular), t
 - Input fingerprinting: critics track what they've already evaluated, preventing duplicate work.
 - Approved-asset rendering: the final output reproduces an approved combination rather than re-rolling.
 - Minimum-tick gating: the CompletionJudge defers until tick 30, ensuring content iteration before wrap-up.
+
+---
+
+## Addendum: Compositing and Composite Critics
+
+### CompositeNerd ("Compositor")
+
+With icons and hero images coexisting on the blackboard as separate items, the poster renderer was the only place they were combined -- and it used fixed layout positions. The CompositeNerd introduces a pre-render compositing step: pick two image items from the blackboard, overlay them with a random offset using ImageMagick, and put the result back on the blackboard as a new `CompositeImage`.
+
+**How it works:**
+
+1. **Pick two images.** Any `HeroImage`, `IconImage`, or existing `CompositeImage` on the blackboard qualifies. The nerd picks two distinct items via `bb.pick()` (heat-weighted).
+2. **Materialize to files.** Images live on the blackboard in different formats: HeroImage as block-color data, IconImage as base64 PNG, CompositeImage as a file path. A `_materialize_image()` helper renders each to a temporary RGBA PNG.
+3. **Compute expanded canvas.** The overlay offset is chosen randomly, ranging from fully off the top-left edge to fully off the bottom-right. Rather than clipping to the base image bounds (as `composite` would), the nerd computes the minimum bounding canvas that contains both images at their positions:
+   ```python
+   left = min(0, offset_x)
+   top  = min(0, offset_y)
+   canvas_w = max(base_w, offset_x + overlay_w) - left
+   canvas_h = max(base_h, offset_y + overlay_h) - top
+   ```
+4. **ImageMagick `convert`.** The compositor uses `convert -size WxH xc:none` to create a transparent canvas, then composites both images onto it at their computed positions. This avoids clipping and preserves the full extent of both sources.
+5. **XMP sidecar.** An RDF/XML sidecar file records where each source image landed in the result, using `nerds:compositeSources` as an `rdf:Bag` of source entries. Each entry stores the source item URI, type, and bounding box (x, y, width, height) in the composite coordinate system.
+
+**Transitive source tracking:** If either input is itself a `CompositeImage`, its XMP sidecar is read and its source entries are merged into the new sidecar with adjusted positions. Compositing A+B→C and then C+D→E produces a sidecar for E that describes where A, B, and D all are -- not just "C and D." This is essential for the visibility and contrast critics, which need to reason about original sources.
+
+The CompositeNerd runs with `cooldown_rate=4`, producing competing composites across the run. The heat system selects among them for downstream use.
+
+### VisibilityCriticNerd
+
+The VisibilityCriticNerd assesses whether each source image is actually visible in a composite. A composite where one source is entirely occluded or placed off-canvas is wasted work.
+
+**How it works:**
+
+1. Find `CompositeImage` items that have no `VisibilityCritique` yet (using `_uncritiqued_composites()`).
+2. For each source in the XMP sidecar, materialize the original image and compare it pixel-by-pixel against the corresponding region of the composite. A pixel "matches" if all RGB channels are within tolerance (10 per channel). Transparent source pixels are excluded.
+3. Visibility score per source = matching pixels / total non-transparent source pixels.
+4. Overall score = minimum across all sources (the weakest link).
+5. **Heat adjustment:** score < 0.2 → set composite heat to `COLD`; score ≥ 0.5 → set to `HOT`.
+
+The numpy-vectorized comparison handles large images efficiently.
+
+### ContrastCriticNerd
+
+The ContrastCriticNerd measures whether the sources in a composite are visually distinguishable from each other. Two images composited together that happen to be similar colors produce a muddy result.
+
+**How it works:**
+
+1. Find uncritiqued `CompositeImage` items (same pattern as VisibilityCritic).
+2. For each source, compute the mean RGB color of its region in the composite (clamped to canvas bounds).
+3. Compute the minimum pairwise Euclidean distance between all source mean colors.
+4. Score = min_distance / 200, capped at 1.0. A score of 1.0 means the closest pair of sources still has an RGB distance of 200+ (very distinct). A score near 0 means two sources blend together.
+5. **Heat adjustment:** score < 0.15 → `COLD`; score ≥ 0.4 → `HOT`.
+
+### Scale-to-fit rendering
+
+Composites can be larger than the poster's image area (since the canvas expands to contain both sources at any offset). The renderer now scales composites down to fit, preserving aspect ratio and never scaling up:
+
+```python
+scale = min(target_w / comp_w, target_h / comp_h, 1.0)
+```
+
+The scaled composite is centered in the image area.
+
+### Vocabulary and SHACL additions
+
+Three new SKOS concepts:
+- `nerds:CompositeImage` (broader: `VisualArtifact`) -- two or more images composited via ImageMagick, tracked by XMP sidecar.
+- `nerds:VisibilityCritique` (broader: `MetaArtifact`) -- per-source visibility scores for a composite.
+- `nerds:ContrastCritique` (broader: `MetaArtifact`) -- inter-source contrast measurement for a composite.
+
+Three new SHACL shapes:
+- `CompositeShape` -- requires `ColorPalette` (ensures visual content exists); Python `can_run()` further requires ≥ 2 image items.
+- `VisibilityCritiqueShape` -- requires `CompositeImage`.
+- `ContrastCritiqueShape` -- requires `CompositeImage`.
+
+Both critic types are added to `_META_TYPES`, preventing them from triggering other critics' "has anything new appeared?" checks.
+
+### Integration with existing nerds
+
+- **PosterCriticNerd** now includes `composite` in its picks (via `bb.pick(NERDS.CompositeImage)`), and the approved-asset final render in `main.py` extracts `nerds:usedComposite` from passing critiques.
+- **Narrator** (`main.py`) gained narration cases for "Compositor", "VisibilityCritic", and "ContrastCritic".
+
+### Updated file inventory
+
+| File | Purpose | Lines | Changed in addendum? |
+|---|---|---|---|
+| `main.py` | Tick loop, SHACL validation, nerd selection, approved-asset final render | ~475 | Yes (narration, composite asset extraction) |
+| `blackboard.py` | RDF graph-backed blackboard with PROV-O provenance | ~225 | Yes (`set_heat()` method) |
+| `nerds.py` | 15 specialist nerds + compositing helpers | ~1490 | Yes (CompositeNerd, VisibilityCriticNerd, ContrastCriticNerd, helpers) |
+| `vocabulary.py` | Namespaces, SKOS concept scheme, SHACL shapes | ~285 | Yes (3 concepts, 3 shapes) |
+| `render.py` | PIL-based poster compositor (supports explicit picks + composite scale-to-fit) | ~450 | Yes (composite rendering) |
+| `narrator.py` | Showboat-style markdown narrative generator | ~165 | No |
+
+### Sample run (seed 100)
+
+```
+  tick 24: Compositor -> ['CompositeImage']    # 978x687, hero + icon
+  tick 29: ContrastCritic -> ['ContrastCritique']  # min_dist=59.1, score=0.30
+  tick 30: Compositor -> ['CompositeImage']    # 853x555, hero + icon
+  tick 34: CompletionJudge -> ['Completion']
+```
+
+Two composites produced, one contrast-critiqued (score 0.30 — moderate contrast, heat stays MEDIUM). The system now has 15 nerds producing 33 items across 34 ticks, with composites competing on the blackboard alongside raw images for use in the final poster.

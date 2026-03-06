@@ -136,6 +136,7 @@ def render_poster(bb: Blackboard, output_path: Path,
     typeface_node = picks.get('typeface') or bb.pick(NERDS.Typeface)
     effect_node = picks.get('effect') or bb.pick(NERDS.PostEffect)
     icon_node = picks.get('icon') or bb.pick(NERDS.IconImage)
+    composite_node = picks.get('composite') or bb.pick(NERDS.CompositeImage)
 
     # --- Extract values from RDF (with defaults) ---
     key_color = _hex_to_rgb(str(bb.get_property(palette_node, NERDS.keyColor) or "#1e1e28"))
@@ -210,6 +211,39 @@ def render_poster(bb: Blackboard, output_path: Path,
             img = Image.alpha_composite(img, overlay)
             img = img.convert("RGB")
             draw = ImageDraw.Draw(img)
+
+    # --- Composite image: scale to fit image area ---
+    if composite_node:
+        comp_path = str(bb.get_property(composite_node,
+                                        NERDS.compositeImagePath) or "")
+        if comp_path and Path(comp_path).exists():
+            try:
+                comp_img = Image.open(comp_path).convert("RGBA")
+                comp_w, comp_h = comp_img.size
+
+                # Target: the layout's image area with small margins
+                target_w = POSTER_W - 40
+                target_h = int(float(layout["image_h"]) * POSTER_H)
+
+                # Scale down to fit, preserving aspect ratio (never scale up)
+                scale = min(target_w / comp_w, target_h / comp_h, 1.0)
+                if scale < 1.0:
+                    new_w = int(comp_w * scale)
+                    new_h = int(comp_h * scale)
+                    comp_img = comp_img.resize((new_w, new_h),
+                                               Image.Resampling.LANCZOS)
+
+                # Center in the image area
+                cx = (POSTER_W - comp_img.width) // 2
+                cy = (int(float(layout["image_y"]) * POSTER_H)
+                      + (target_h - comp_img.height) // 2)
+
+                img_rgba = img.convert("RGBA")
+                img_rgba.paste(comp_img, (cx, cy), comp_img)
+                img = img_rgba.convert("RGB")
+                draw = ImageDraw.Draw(img)
+            except Exception as e:
+                print(f"  [Render] Composite image failed: {e}")
 
     # --- Icon: composite the Noun Project icon ---
     if icon_node:

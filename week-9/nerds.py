@@ -18,6 +18,9 @@ import os
 import random
 import colorsys
 import base64
+import shutil
+import subprocess
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from io import BytesIO
 
@@ -26,6 +29,8 @@ from rdflib.namespace import RDF, RDFS, XSD, PROV, DCTERMS
 from SPARQLWrapper import SPARQLWrapper, JSON
 from requests_oauthlib import OAuth1
 import requests
+import numpy as np
+from PIL import Image, ImageDraw
 
 from pathlib import Path
 
@@ -35,7 +40,8 @@ from vocabulary import NERDS, SCHEMA, SH
 
 # Types that represent meta-evaluation, not "real" poster assets.
 # Critics use this to decide whether anything new has appeared.
-_META_TYPES = [NERDS.Critique, NERDS.PosterCritique, NERDS.Completion]
+_META_TYPES = [NERDS.Critique, NERDS.PosterCritique, NERDS.Completion,
+               NERDS.VisibilityCritique, NERDS.ContrastCritique]
 
 
 def _input_fingerprint(items: list[URIRef | None]) -> str:
@@ -441,6 +447,258 @@ LAYOUT_TEMPLATES = [
 
 
 # ---------------------------------------------------------------------------
+# Image compositing helpers (ImageMagick + XMP sidecars)
+# ---------------------------------------------------------------------------
+
+_HERO_RENDER_W, _HERO_RENDER_H = 600, 400
+
+# XMP namespace URIs
+_XMP_META_NS = "adobe:ns:meta/"
+_XMP_RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+_XMP_NERDS_NS = "http://example.org/nerds/"
+
+ET.register_namespace("x", _XMP_META_NS)
+ET.register_namespace("rdf", _XMP_RDF_NS)
+ET.register_namespace("nerds", _XMP_NERDS_NS)
+
+
+@dataclass
+class _SourceEntry:
+    """One original image's logical position inside a composite."""
+    item_ref: str
+    item_type: str
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+def _find_convert_cmd() -> list[str] | None:
+    """Locate the ImageMagick convert binary (IM6) or magick (IM7)."""
+    if shutil.which("convert"):
+        return ["convert"]
+    if shutil.which("magick"):
+        return ["magick"]
+    return None
+
+
+def _render_hero_to_file(block_data: str, path: Path):
+    """Render HeroImage block data to a standalone RGBA PNG."""
+    w, h = _HERO_RENDER_W, _HERO_RENDER_H
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    for block_str in block_data.split(";"):
+        parts = block_str.strip().split(",")
+        if len(parts) < 6:
+            continue
+        bx = int(float(parts[0]) * w)
+        by = int(float(parts[1]) * h)
+        bw = int(float(parts[2]) * w)
+        bh = int(float(parts[3]) * h)
+        color_hex = parts[4].strip()
+        r = int(color_hex[1:3], 16)
+        g = int(color_hex[3:5], 16)
+        b = int(color_hex[5:7], 16)
+        a = int(float(parts[5]) * 255)
+        draw.rectangle([bx, by, bx + bw, by + bh], fill=(r, g, b, a))
+    img.save(str(path))
+
+
+def _materialize_image(bb: Blackboard, item: URIRef,
+                       temp_dir: Path) -> Path | None:
+    """Turn a blackboard image item into a PNG file on disk."""
+    item_type = bb.get_property(item, DCTERMS.type)
+    item_id = str(
+        bb.get_property(item, DCTERMS.identifier)
+        or str(item).split("/")[-1]
+    )
+
+    if item_type == NERDS.IconImage:
+        b64 = str(bb.get_property(item, NERDS.iconPngBase64) or "")
+        if not b64:
+            return None
+        path = temp_dir / f"mat_{item_id}.png"
+        if not path.exists():
+            path.write_bytes(base64.b64decode(b64))
+        return path
+
+    if item_type == NERDS.HeroImage:
+        block_data = str(bb.get_property(item, NERDS.blockData) or "")
+        if not block_data:
+            return None
+        path = temp_dir / f"mat_{item_id}.png"
+        if not path.exists():
+            _render_hero_to_file(block_data, path)
+        return path
+
+    if item_type == NERDS.CompositeImage:
+        p = str(bb.get_property(item, NERDS.compositeImagePath) or "")
+        if p and Path(p).exists():
+            return Path(p)
+        return None
+
+    return None
+
+
+# ---- XMP sidecar read / write / merge ----
+
+def _write_xmp_sidecar(path: Path, sources: list[_SourceEntry]):
+    """Write an XMP sidecar recording where each source image sits."""
+    root = ET.Element(f"{{{_XMP_META_NS}}}xmpmeta")
+    rdf_el = ET.SubElement(root, f"{{{_XMP_RDF_NS}}}RDF")
+    desc = ET.SubElement(rdf_el, f"{{{_XMP_RDF_NS}}}Description")
+    desc.set(f"{{{_XMP_RDF_NS}}}about", "")
+
+    bag_wrap = ET.SubElement(desc, f"{{{_XMP_NERDS_NS}}}compositeSources")
+    bag = ET.SubElement(bag_wrap, f"{{{_XMP_RDF_NS}}}Bag")
+
+    for src in sources:
+        li = ET.SubElement(bag, f"{{{_XMP_RDF_NS}}}li")
+        li.set(f"{{{_XMP_RDF_NS}}}parseType", "Resource")
+        for tag, val in [
+            ("sourceItemRef", src.item_ref),
+            ("sourceItemType", src.item_type),
+            ("sourceX", str(src.x)),
+            ("sourceY", str(src.y)),
+            ("sourceWidth", str(src.width)),
+            ("sourceHeight", str(src.height)),
+        ]:
+            el = ET.SubElement(li, f"{{{_XMP_NERDS_NS}}}{tag}")
+            el.text = val
+
+    tree = ET.ElementTree(root)
+    ET.indent(tree, space="  ")
+    tree.write(str(path), xml_declaration=True, encoding="utf-8")
+
+
+def _read_xmp_sidecar(image_path: Path) -> list[_SourceEntry]:
+    """Read source entries from an XMP sidecar, if one exists."""
+    xmp_path = image_path.with_suffix(".xmp")
+    if not xmp_path.exists():
+        return []
+    try:
+        tree = ET.parse(str(xmp_path))
+        sources: list[_SourceEntry] = []
+        for li in tree.iter(f"{{{_XMP_RDF_NS}}}li"):
+            ref = li.findtext(f"{{{_XMP_NERDS_NS}}}sourceItemRef", "")
+            stype = li.findtext(f"{{{_XMP_NERDS_NS}}}sourceItemType", "")
+            x = int(li.findtext(f"{{{_XMP_NERDS_NS}}}sourceX", "0"))
+            y = int(li.findtext(f"{{{_XMP_NERDS_NS}}}sourceY", "0"))
+            w = int(li.findtext(f"{{{_XMP_NERDS_NS}}}sourceWidth", "0"))
+            h = int(li.findtext(f"{{{_XMP_NERDS_NS}}}sourceHeight", "0"))
+            sources.append(_SourceEntry(ref, stype, x, y, w, h))
+        return sources
+    except Exception:
+        return []
+
+
+def _merge_xmp_sources(
+    base_sidecar: list[_SourceEntry],
+    base_item: URIRef, base_type: URIRef,
+    base_x: int, base_y: int, base_w: int, base_h: int,
+    overlay_sidecar: list[_SourceEntry],
+    overlay_item: URIRef, overlay_type: URIRef,
+    overlay_x: int, overlay_y: int,
+    overlay_w: int, overlay_h: int,
+) -> list[_SourceEntry]:
+    """Merge source entries from base and overlay, adjusting positions.
+
+    Both base and overlay positions are given in canvas coordinates.
+    If either already has a sidecar, its entries are shifted accordingly;
+    otherwise a single entry for the image itself is created.
+    """
+    sources: list[_SourceEntry] = []
+
+    if base_sidecar:
+        for s in base_sidecar:
+            sources.append(_SourceEntry(
+                s.item_ref, s.item_type,
+                s.x + base_x, s.y + base_y,
+                s.width, s.height,
+            ))
+    else:
+        sources.append(_SourceEntry(
+            str(base_item), str(base_type).split("/")[-1],
+            base_x, base_y, base_w, base_h,
+        ))
+
+    if overlay_sidecar:
+        for s in overlay_sidecar:
+            sources.append(_SourceEntry(
+                s.item_ref, s.item_type,
+                s.x + overlay_x, s.y + overlay_y,
+                s.width, s.height,
+            ))
+    else:
+        sources.append(_SourceEntry(
+            str(overlay_item), str(overlay_type).split("/")[-1],
+            overlay_x, overlay_y, overlay_w, overlay_h,
+        ))
+
+    return sources
+
+
+# ---- Composite critique helpers ----
+
+def _uncritiqued_composites(bb: Blackboard,
+                            critique_type: URIRef) -> list[URIRef]:
+    """Find CompositeImages not yet assessed by *critique_type*."""
+    composites = set(bb.query_items(NERDS.CompositeImage))
+    critiqued: set[URIRef] = set()
+    for crit in bb.query_items(critique_type):
+        t = bb.get_property(crit, NERDS.critiquedItem)
+        if t:
+            critiqued.add(t)
+    return list(composites - critiqued)
+
+
+def _compute_source_visibility(composite_img: np.ndarray,
+                               source_img: np.ndarray,
+                               src_x: int, src_y: int,
+                               tolerance: int = 10) -> float:
+    """Fraction of source's opaque pixels preserved in the composite.
+
+    For each non-transparent pixel in *source_img*, checks whether the
+    composite has the same RGB value (within *tolerance* per channel)
+    at offset (src_x, src_y).  Pixels that map outside the composite
+    bounds count as not visible.
+    """
+    comp_h, comp_w = composite_img.shape[:2]
+    src_h, src_w = source_img.shape[:2]
+
+    opaque = source_img[:, :, 3] > 0
+    total = int(opaque.sum())
+    if total == 0:
+        return 1.0
+
+    ys, xs = np.where(opaque)
+    cxs = xs + src_x
+    cys = ys + src_y
+
+    valid = (cxs >= 0) & (cxs < comp_w) & (cys >= 0) & (cys < comp_h)
+    if valid.sum() == 0:
+        return 0.0
+
+    src_px = source_img[ys[valid], xs[valid], :3].astype(np.int16)
+    comp_px = composite_img[cys[valid], cxs[valid], :3].astype(np.int16)
+
+    matching = int(np.all(np.abs(src_px - comp_px) <= tolerance, axis=1).sum())
+    return matching / total
+
+
+def _region_mean_color(composite_img: np.ndarray,
+                       x: int, y: int, w: int, h: int
+                       ) -> np.ndarray | None:
+    """Mean RGB of a rectangular region in the composite, clamped to bounds."""
+    comp_h, comp_w = composite_img.shape[:2]
+    x1, y1 = max(0, x), max(0, y)
+    x2, y2 = min(comp_w, x + w), min(comp_h, y + h)
+    if x2 <= x1 or y2 <= y1:
+        return None
+    return composite_img[y1:y2, x1:x2, :3].astype(np.float64).mean(axis=(0, 1))
+
+
+# ---------------------------------------------------------------------------
 # Base Nerd
 # ---------------------------------------------------------------------------
 
@@ -797,6 +1055,253 @@ class GrainNerd(Nerd):
         return [(NERDS.PostEffect, props, Heat.MEDIUM, 1)]
 
 
+class CompositeNerd(Nerd):
+    """Composites two blackboard images using ImageMagick's composite tool.
+
+    Picks two image items (IconImage, HeroImage, or CompositeImage),
+    materializes them to temp files, overlays one on the other at a
+    random offset, and writes an XMP sidecar tracking where each source
+    ended up in the result.  Sidecar integration is transitive: if a
+    source was itself a composite, its entries are offset-adjusted and
+    merged into the new sidecar.
+    """
+
+    _IMAGE_TYPES = [NERDS.IconImage, NERDS.HeroImage, NERDS.CompositeImage]
+
+    def can_run(self, bb: Blackboard) -> bool:
+        if not super().can_run(bb):
+            return False
+        total = sum(len(bb.query_items(t)) for t in self._IMAGE_TYPES)
+        return total >= 2
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        convert_cmd = _find_convert_cmd()
+        if not convert_cmd:
+            print("  [Compositor] ImageMagick not found, skipping")
+            return []
+
+        # Gather all image items across types
+        all_images = []
+        for t in self._IMAGE_TYPES:
+            for item in bb.query_items(t):
+                all_images.append((item, t))
+        if len(all_images) < 2:
+            return []
+
+        # Pick two distinct images
+        (base_item, base_type), (overlay_item, overlay_type) = \
+            random.sample(all_images, 2)
+
+        # Materialize both to temp PNG files
+        temp_dir = Path("output") / "temp"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        base_path = _materialize_image(bb, base_item, temp_dir)
+        overlay_path = _materialize_image(bb, overlay_item, temp_dir)
+        if not base_path or not overlay_path:
+            return []
+
+        # Get source dimensions
+        with Image.open(base_path) as bi:
+            base_w, base_h = bi.size
+        with Image.open(overlay_path) as oi:
+            overlay_w, overlay_h = oi.size
+
+        # Random offset: where overlay's top-left goes relative to base's
+        # top-left.  Full range from no-overlap top-left to bottom-right.
+        offset_x = random.randint(-overlay_w, base_w)
+        offset_y = random.randint(-overlay_h, base_h)
+
+        # Compute a canvas large enough to contain both images
+        left = min(0, offset_x)
+        top = min(0, offset_y)
+        canvas_w = max(base_w, offset_x + overlay_w) - left
+        canvas_h = max(base_h, offset_y + overlay_h) - top
+        base_cx, base_cy = -left, -top
+        overlay_cx = offset_x - left
+        overlay_cy = offset_y - top
+
+        result_path = temp_dir / f"composite_tick{bb.tick}_{bb._next_id}.png"
+        cmd = convert_cmd + [
+            "-size", f"{canvas_w}x{canvas_h}", "xc:none",
+            str(base_path), "-geometry", f"+{base_cx}+{base_cy}", "-composite",
+            str(overlay_path), "-geometry", f"+{overlay_cx}+{overlay_cy}",
+            "-composite", str(result_path),
+        ]
+        print(f"  [Compositor] {' '.join(cmd)}")
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, timeout=30)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired,
+                FileNotFoundError) as e:
+            print(f"  [Compositor] ImageMagick failed: {e}")
+            return []
+
+        if not result_path.exists():
+            return []
+
+        with Image.open(result_path) as ri:
+            result_w, result_h = ri.size
+
+        # Build XMP sidecar with transitive source tracking
+        base_sidecar = _read_xmp_sidecar(base_path)
+        overlay_sidecar = _read_xmp_sidecar(overlay_path)
+        sources = _merge_xmp_sources(
+            base_sidecar, base_item, base_type,
+            base_cx, base_cy, base_w, base_h,
+            overlay_sidecar, overlay_item, overlay_type,
+            overlay_cx, overlay_cy, overlay_w, overlay_h,
+        )
+        xmp_path = result_path.with_suffix(".xmp")
+        _write_xmp_sidecar(xmp_path, sources)
+
+        print(f"  [Compositor] Result: {result_w}x{result_h}, "
+              f"{len(sources)} sources tracked in XMP sidecar")
+
+        props = {
+            NERDS.compositeImagePath: Literal(str(result_path)),
+            NERDS.compositeXmpPath: Literal(str(xmp_path)),
+            NERDS.compositeWidth: Literal(result_w, datatype=XSD.integer),
+            NERDS.compositeHeight: Literal(result_h, datatype=XSD.integer),
+            NERDS.sourceItem1: base_item,
+            NERDS.sourceItem2: overlay_item,
+            NERDS.overlayOffsetX: Literal(offset_x, datatype=XSD.integer),
+            NERDS.overlayOffsetY: Literal(offset_y, datatype=XSD.integer),
+        }
+        return [(NERDS.CompositeImage, props, Heat.HOT, 3)]
+
+
+class VisibilityCriticNerd(Nerd):
+    """Scores how well each source image is preserved in a composite.
+
+    For each source in the XMP sidecar, materializes the original,
+    extracts its region from the composite, and counts how many
+    non-transparent source pixels match (within tolerance).
+    Overall score = min per-source visibility.
+
+    Low scores  -> composite heat set to COLD.
+    High scores -> composite heat set to HOT.
+    """
+
+    def can_run(self, bb: Blackboard) -> bool:
+        if not super().can_run(bb):
+            return False
+        return len(_uncritiqued_composites(bb, NERDS.VisibilityCritique)) > 0
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        targets = _uncritiqued_composites(bb, NERDS.VisibilityCritique)
+        if not targets:
+            return []
+
+        target = random.choice(targets)
+        comp_path = str(bb.get_property(target, NERDS.compositeImagePath) or "")
+        if not comp_path or not Path(comp_path).exists():
+            return []
+
+        comp_img = np.array(Image.open(comp_path).convert("RGBA"))
+        sources = _read_xmp_sidecar(Path(comp_path))
+        if not sources:
+            return []
+
+        temp_dir = Path("output") / "temp"
+        per_source: list[float] = []
+        score_strs: list[str] = []
+
+        for entry in sources:
+            src_uri = URIRef(entry.item_ref)
+            src_path = _materialize_image(bb, src_uri, temp_dir)
+            if not src_path:
+                per_source.append(0.0)
+                score_strs.append(f"{entry.item_type}:0.00")
+                continue
+            src_img = np.array(Image.open(src_path).convert("RGBA"))
+            vis = _compute_source_visibility(
+                comp_img, src_img, entry.x, entry.y)
+            per_source.append(vis)
+            score_strs.append(f"{entry.item_type}:{vis:.2f}")
+
+        overall = min(per_source) if per_source else 0.0
+
+        if overall < 0.2:
+            bb.set_heat(target, Heat.COLD)
+        elif overall >= 0.5:
+            bb.set_heat(target, Heat.HOT)
+
+        print(f"  [VisibilityCritic] scores={score_strs}, overall={overall:.2f}")
+
+        props = {
+            NERDS.critiquedItem: target,
+            NERDS.visibilityScore: Literal(overall, datatype=XSD.float),
+            NERDS.sourceScores: Literal(",".join(score_strs)),
+            NERDS.critiqueTick: Literal(bb.tick, datatype=XSD.integer),
+        }
+        return [(NERDS.VisibilityCritique, props, Heat.MEDIUM, 1)]
+
+
+class ContrastCriticNerd(Nerd):
+    """Scores how distinguishable sources are from each other in a composite.
+
+    Computes the mean RGB of each source's region in the composite,
+    then measures the minimum pairwise Euclidean distance.  Low
+    contrast means the sources blend into an indistinct muddle.
+
+    Low scores  -> composite heat set to COLD.
+    High scores -> composite heat set to HOT.
+    """
+
+    def can_run(self, bb: Blackboard) -> bool:
+        if not super().can_run(bb):
+            return False
+        return len(_uncritiqued_composites(bb, NERDS.ContrastCritique)) > 0
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        targets = _uncritiqued_composites(bb, NERDS.ContrastCritique)
+        if not targets:
+            return []
+
+        target = random.choice(targets)
+        comp_path = str(bb.get_property(target, NERDS.compositeImagePath) or "")
+        if not comp_path or not Path(comp_path).exists():
+            return []
+
+        comp_img = np.array(Image.open(comp_path).convert("RGB"))
+        sources = _read_xmp_sidecar(Path(comp_path))
+        if len(sources) < 2:
+            return []
+
+        colors: list[np.ndarray] = []
+        for src in sources:
+            mean_rgb = _region_mean_color(
+                comp_img, src.x, src.y, src.width, src.height)
+            if mean_rgb is not None:
+                colors.append(mean_rgb)
+
+        if len(colors) < 2:
+            overall = 1.0
+            min_dist = -1.0
+        else:
+            min_dist = float("inf")
+            for i in range(len(colors)):
+                for j in range(i + 1, len(colors)):
+                    d = float(np.sqrt(np.sum((colors[i] - colors[j]) ** 2)))
+                    min_dist = min(min_dist, d)
+            overall = min(1.0, min_dist / 200.0)
+
+        if overall < 0.15:
+            bb.set_heat(target, Heat.COLD)
+        elif overall >= 0.4:
+            bb.set_heat(target, Heat.HOT)
+
+        print(f"  [ContrastCritic] min_dist={min_dist:.1f}, score={overall:.2f}")
+
+        props = {
+            NERDS.critiquedItem: target,
+            NERDS.contrastScore: Literal(overall, datatype=XSD.float),
+            NERDS.minPairwiseDistance: Literal(min_dist, datatype=XSD.float),
+            NERDS.critiqueTick: Literal(bb.tick, datatype=XSD.integer),
+        }
+        return [(NERDS.ContrastCritique, props, Heat.MEDIUM, 1)]
+
+
 class CritiqueNerd(Nerd):
     """Evaluates completeness of the poster."""
 
@@ -875,6 +1380,7 @@ class PosterCriticNerd(Nerd):
         ('typeface', NERDS.usedTypeface),
         ('effect',  NERDS.usedEffect),
         ('icon',    NERDS.usedIcon),
+        ('composite', NERDS.usedComposite),
     ]
 
     def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
@@ -888,6 +1394,7 @@ class PosterCriticNerd(Nerd):
             'typeface': bb.pick(NERDS.Typeface),
             'effect':   bb.pick(NERDS.PostEffect),
             'icon':     bb.pick(NERDS.IconImage),
+            'composite': bb.pick(NERDS.CompositeImage),
         }
 
         fingerprint = _input_fingerprint(list(picks.values()))
@@ -967,6 +1474,14 @@ def make_all_nerds() -> list[Nerd]:
                  shacl_shape=NERDS.IconShape),
         GrainNerd(name="GrainEffect", heat=Heat.MEDIUM, cooldown_rate=5,
                   shacl_shape=NERDS.GrainShape),
+        CompositeNerd(name="Compositor", heat=Heat.MEDIUM, cooldown_rate=4,
+                      shacl_shape=NERDS.CompositeShape),
+        VisibilityCriticNerd(name="VisibilityCritic", heat=Heat.MEDIUM,
+                             cooldown_rate=2,
+                             shacl_shape=NERDS.VisibilityCritiqueShape),
+        ContrastCriticNerd(name="ContrastCritic", heat=Heat.MEDIUM,
+                           cooldown_rate=2,
+                           shacl_shape=NERDS.ContrastCritiqueShape),
         CritiqueNerd(name="Critic", heat=Heat.HOT, cooldown_rate=2,
                      shacl_shape=NERDS.CritiqueShape),
         PosterCriticNerd(name="PosterCritic", heat=Heat.MEDIUM, cooldown_rate=3,
