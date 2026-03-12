@@ -1,0 +1,766 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix nerds: <http://example.org/nerds/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema1: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+nerds:Blackboard a nerds:BlackboardSystem ;
+    rdfs:label "NERDS Blackboard" ;
+    nerds:contains nerds:item_0,
+        nerds:item_1,
+        nerds:item_10,
+        nerds:item_11,
+        nerds:item_12,
+        nerds:item_13,
+        nerds:item_14,
+        nerds:item_15,
+        nerds:item_16,
+        nerds:item_17,
+        nerds:item_18,
+        nerds:item_19,
+        nerds:item_2,
+        nerds:item_20,
+        nerds:item_21,
+        nerds:item_22,
+        nerds:item_23,
+        nerds:item_24,
+        nerds:item_25,
+        nerds:item_26,
+        nerds:item_27,
+        nerds:item_28,
+        nerds:item_29,
+        nerds:item_3,
+        nerds:item_30,
+        nerds:item_31,
+        nerds:item_4,
+        nerds:item_5,
+        nerds:item_6,
+        nerds:item_7,
+        nerds:item_8,
+        nerds:item_9 .
+
+nerds:Completion a skos:Concept ;
+    rdfs:comment "Signal that the poster is done." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Completion"@en .
+
+nerds:ContrastCritique a skos:Concept ;
+    rdfs:comment "Inter-source contrast measurement for a composite image." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Contrast Critique"@en .
+
+nerds:HeroImage a skos:Concept ;
+    rdfs:comment "Procedural color-field imagery for the poster body." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Hero Image"@en .
+
+nerds:PostEffect a skos:Concept ;
+    rdfs:comment "Film grain, vignette, or posterization flags." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Post Effect"@en .
+
+nerds:VisibilityCritique a skos:Concept ;
+    rdfs:comment "Per-source visibility scores for a composite image." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Visibility Critique"@en .
+
+nerds:CompositeImage a skos:Concept ;
+    rdfs:comment "Two or more images composited via ImageMagick, tracked by XMP sidecar." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Composite Image"@en .
+
+nerds:Keywords a skos:Concept ;
+    rdfs:comment "Plot-derived or genre-derived search keywords for icon selection." ;
+    skos:broader nerds:FoundationalArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Keywords"@en .
+
+nerds:MovieData a skos:Concept ;
+    rdfs:comment "A film's metadata: title, director, cast, genre, year." ;
+    skos:broader nerds:FoundationalArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Movie Data"@en .
+
+nerds:StructuralArtifact a skos:Concept ;
+    rdfs:comment "Layout and spatial organization." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Structural Artifact"@en .
+
+nerds:Typeface a skos:Concept ;
+    rdfs:comment "Selected typeface name, style, and weight." ;
+    skos:broader nerds:TypographicArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Typeface"@en .
+
+nerds:activity_Compositor_tick20_item_31 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:50.610870"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Compositor .
+
+nerds:activity_Critic_tick12_item_20 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.335917"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_Critic_tick17_item_28 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.978998"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_Critic_tick4_item_6 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.192391"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_Critic .
+
+nerds:activity_GenrePalette_tick11_item_19 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.326823"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_GenrePalette .
+
+nerds:activity_GenrePalette_tick5_item_7 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.198116"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_GenrePalette .
+
+nerds:activity_IconFetcher_tick13_item_21 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:41.163740"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_IconFetcher .
+
+nerds:activity_IconFetcher_tick18_item_29 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:28.093029"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_IconFetcher .
+
+nerds:activity_KeywordExtractor_tick3_item_5 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.186286"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_KeywordExtractor .
+
+nerds:activity_LayoutPicker_tick10_item_18 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.316955"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_LayoutPicker .
+
+nerds:activity_LayoutPicker_tick7_item_12 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.209475"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_LayoutPicker .
+
+nerds:activity_MoviePicker_tick1_item_0 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.029335"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_MoviePicker .
+
+nerds:activity_PosterCritic_tick14_item_22 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.949048"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_PosterCritic .
+
+nerds:activity_PosterCritic_tick19_item_30 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:50.489239"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_PosterCritic .
+
+nerds:activity_PosterCritic_tick8_item_13 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.294716"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_PosterCritic .
+
+nerds:activity_TitleParser_tick15_item_23 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.959772"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick15_item_24 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.960034"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick15_item_25 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.960286"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick15_item_26 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.960516"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick2_item_1 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.038326"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick2_item_2 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.038702"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick2_item_3 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.039020"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick2_item_4 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.039421"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick6_item_10 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.205404"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick6_item_11 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.205610"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick6_item_8 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.204956"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick6_item_9 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:55:56.205177"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick9_item_14 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.306211"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick9_item_15 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.306665"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick9_item_16 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.307052"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TitleParser_tick9_item_17 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:56:40.307394"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TitleParser .
+
+nerds:activity_TypefacePicker_tick16_item_27 a prov:Activity ;
+    prov:startedAtTime "2026-03-12T08:57:26.968443"^^xsd:dateTime ;
+    prov:wasAssociatedWith nerds:agent_TypefacePicker .
+
+nerds:item_1 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from the Minaret" ;
+    nerds:secondaryTitle "" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "full_title" ;
+    dcterms:created 2 ;
+    dcterms:identifier "item_1" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick2_item_1 .
+
+nerds:item_11 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice" ;
+    nerds:secondaryTitle "from the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "natural_phrase" ;
+    dcterms:created 6 ;
+    dcterms:identifier "item_11" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick6_item_11 .
+
+nerds:item_13 a prov:Entity ;
+    nerds:critiqueIssues "Title split between main title and subtitle makes no grammatical or thematic sense - 'The Voice from the' is incomplete without 'Minaret',Relegating 'Minaret' to subtitle status buries the most evocative, distinctive word in the title,No imagery or visual elements described - minimalist does not mean empty,Accent color (#42a58b) lacks sufficient contrast against background (#354d59) - both sit in similar mid-tone range,Nothing in the design reflects the Middle Eastern/Islamic setting implied by 'Minaret',Missing standard poster elements: director credit, actor names, tagline, release information,No visual hook or emotional resonance to draw viewers in" ;
+    nerds:critiqueScore "0.35"^^xsd:float ;
+    nerds:critiqueStrengths "Background color (#354d59) is appropriately moody and sophisticated for drama,Analogous color relationship between background and accent shows basic color theory awareness,Minimalist approach can be effective for serious drama when executed with intention" ;
+    nerds:critiqueSummary "This poster fails on fundamental levels. The bizarre title fragmentation demonstrates a misunderstanding of hierarchy and meaning, while the complete absence of visual elements makes this feel like a color palette test rather than a movie poster. The design shows no awareness of the film's subject matter or setting. A drama poster should evoke emotion and intrigue - this evokes nothing." ;
+    nerds:critiqueTick 8 ;
+    nerds:heat nerds:Cold ;
+    nerds:inputFingerprint "http://example.org/nerds/item_0|http://example.org/nerds/item_10|http://example.org/nerds/item_12|http://example.org/nerds/item_7" ;
+    nerds:passes false ;
+    nerds:posterImage "output/temp/temp_poster_tick8.png" ;
+    nerds:structuredIssues "[{\"issue_type\": \"color_palette_weak\", \"severity\": \"high\", \"confidence\": 0.7, \"remediation\": \"switch_to\", \"target\": \"action\", \"nerd\": \"GenrePaletteNerd\"}, {\"issue_type\": \"imagery_missing\", \"severity\": \"high\", \"confidence\": 0.6, \"remediation\": \"add\", \"target\": \"hero+icon_composite\", \"nerd\": \"IconNerd\"}, {\"issue_type\": \"title_hierarchy_confusing\", \"severity\": \"medium\", \"confidence\": 0.5, \"remediation\": \"modify\", \"target\": \"title_structure\", \"nerd\": \"TitleParserNerd\"}]" ;
+    nerds:thermalMass 1 ;
+    nerds:usedLayout nerds:item_12 ;
+    nerds:usedMovie nerds:item_0 ;
+    nerds:usedPalette nerds:item_7 ;
+    nerds:usedTitle nerds:item_10 ;
+    dcterms:created 8 ;
+    dcterms:identifier "item_13" ;
+    dcterms:type nerds:PosterCritique ;
+    prov:wasAttributedTo nerds:agent_PosterCritic ;
+    prov:wasGeneratedBy nerds:activity_PosterCritic_tick8_item_13 .
+
+nerds:item_14 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from the Minaret" ;
+    nerds:secondaryTitle "" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "full_title" ;
+    dcterms:created 9 ;
+    dcterms:identifier "item_14" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick9_item_14 .
+
+nerds:item_15 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from" ;
+    nerds:secondaryTitle "the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "two_line" ;
+    dcterms:created 9 ;
+    dcterms:identifier "item_15" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick9_item_15 .
+
+nerds:item_16 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle """The Voice
+from the""" ;
+    nerds:secondaryTitle "Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "three_line" ;
+    dcterms:created 9 ;
+    dcterms:identifier "item_16" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick9_item_16 .
+
+nerds:item_17 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice" ;
+    nerds:secondaryTitle "from the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "natural_phrase" ;
+    dcterms:created 9 ;
+    dcterms:identifier "item_17" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick9_item_17 .
+
+nerds:item_2 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from" ;
+    nerds:secondaryTitle "the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "two_line" ;
+    dcterms:created 2 ;
+    dcterms:identifier "item_2" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick2_item_2 .
+
+nerds:item_20 a prov:Entity ;
+    nerds:completeness "0.5"^^xsd:float ;
+    nerds:critiqueTick 12 ;
+    nerds:heat nerds:Cold ;
+    nerds:inputFingerprint "ColorPalette|Layout|TitleChunks" ;
+    nerds:issues "missing_typeface,missing_hero_or_composite,missing_icon_or_composite" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 12 ;
+    dcterms:identifier "item_20" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick12_item_20 .
+
+nerds:item_22 a prov:Entity ;
+    nerds:critiqueIssues "The Rupee icon is thematically incoherent—a minaret is Islamic architecture, and the rupee is Indian currency, creating a jarring cultural mismatch,Title split between 'The Voice' and 'from the Minaret' fractures the poetic weight of the full title and misleads audiences,Color palette reads more tech-startup or wellness brand than drama—lacks emotional depth or tension,Minimalist approach with only a currency symbol fails to convey narrative stakes, character, or atmosphere,No visual connection to the film's Middle Eastern setting or romantic drama themes,Director credit missing from poster entirely" ;
+    nerds:critiqueScore "0.35"^^xsd:float ;
+    nerds:critiqueStrengths "Background and accent colors are technically harmonious as analogous cool tones,Minimalist aesthetic could work with appropriate iconography,Subtitle hierarchy attempts to preserve the full title" ;
+    nerds:critiqueSummary "A well-intentioned but fundamentally misguided design. The Rupee icon betrays a lack of research into the source material and creates an offensive cultural disconnect. The palette lacks dramatic tension, and the fractured title dilutes the film's identity. This reads as a generic placeholder, not a poster for a romantic drama set in the Middle East." ;
+    nerds:critiqueTick 14 ;
+    nerds:heat nerds:Cold ;
+    nerds:inputFingerprint "http://example.org/nerds/item_0|http://example.org/nerds/item_12|http://example.org/nerds/item_19|http://example.org/nerds/item_21|http://example.org/nerds/item_4" ;
+    nerds:passes false ;
+    nerds:posterImage "output/temp/temp_poster_tick14.png" ;
+    nerds:structuredIssues "[{\"issue_type\": \"color_palette_weak\", \"severity\": \"high\", \"confidence\": 0.7, \"remediation\": \"switch_to\", \"target\": \"action\", \"nerd\": \"GenrePaletteNerd\"}, {\"issue_type\": \"imagery_missing\", \"severity\": \"high\", \"confidence\": 0.6, \"remediation\": \"add\", \"target\": \"hero+icon_composite\", \"nerd\": \"IconNerd\"}, {\"issue_type\": \"title_hierarchy_confusing\", \"severity\": \"medium\", \"confidence\": 0.5, \"remediation\": \"modify\", \"target\": \"title_structure\", \"nerd\": \"TitleParserNerd\"}]" ;
+    nerds:thermalMass 1 ;
+    nerds:usedIcon nerds:item_21 ;
+    nerds:usedLayout nerds:item_12 ;
+    nerds:usedMovie nerds:item_0 ;
+    nerds:usedPalette nerds:item_19 ;
+    nerds:usedTitle nerds:item_4 ;
+    dcterms:created 14 ;
+    dcterms:identifier "item_22" ;
+    dcterms:type nerds:PosterCritique ;
+    prov:wasAttributedTo nerds:agent_PosterCritic ;
+    prov:wasGeneratedBy nerds:activity_PosterCritic_tick14_item_22 .
+
+nerds:item_24 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from" ;
+    nerds:secondaryTitle "the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "two_line" ;
+    dcterms:created 15 ;
+    dcterms:identifier "item_24" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick15_item_24 .
+
+nerds:item_25 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle """The Voice
+from the""" ;
+    nerds:secondaryTitle "Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "three_line" ;
+    dcterms:created 15 ;
+    dcterms:identifier "item_25" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick15_item_25 .
+
+nerds:item_26 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice" ;
+    nerds:secondaryTitle "from the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "natural_phrase" ;
+    dcterms:created 15 ;
+    dcterms:identifier "item_26" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick15_item_26 .
+
+nerds:item_28 a prov:Entity ;
+    nerds:completeness "0.8333333333333334"^^xsd:float ;
+    nerds:critiqueTick 17 ;
+    nerds:heat nerds:Cold ;
+    nerds:inputFingerprint "ColorPalette|IconElement|Layout|TitleChunks|Typeface" ;
+    nerds:issues "missing_hero_or_composite" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 17 ;
+    dcterms:identifier "item_28" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick17_item_28 .
+
+nerds:item_3 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle """The Voice
+from the""" ;
+    nerds:secondaryTitle "Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "three_line" ;
+    dcterms:created 2 ;
+    dcterms:identifier "item_3" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick2_item_3 .
+
+nerds:item_30 a prov:Entity ;
+    nerds:critiqueIssues "" ;
+    nerds:critiqueScore "1.0"^^xsd:float ;
+    nerds:critiqueStrengths "" ;
+    nerds:critiqueSummary "" ;
+    nerds:critiqueTick 19 ;
+    nerds:heat nerds:Cold ;
+    nerds:inputFingerprint "http://example.org/nerds/item_0|http://example.org/nerds/item_18|http://example.org/nerds/item_19|http://example.org/nerds/item_23|http://example.org/nerds/item_27|http://example.org/nerds/item_29" ;
+    nerds:passes true ;
+    nerds:posterImage "output/temp/temp_poster_tick19.png" ;
+    nerds:structuredIssues "[]" ;
+    nerds:thermalMass 1 ;
+    nerds:usedIcon nerds:item_29 ;
+    nerds:usedLayout nerds:item_18 ;
+    nerds:usedMovie nerds:item_0 ;
+    nerds:usedPalette nerds:item_19 ;
+    nerds:usedTitle nerds:item_23 ;
+    nerds:usedTypeface nerds:item_27 ;
+    dcterms:created 19 ;
+    dcterms:identifier "item_30" ;
+    dcterms:type nerds:PosterCritique ;
+    prov:wasAttributedTo nerds:agent_PosterCritic ;
+    prov:wasGeneratedBy nerds:activity_PosterCritic_tick19_item_30 .
+
+nerds:item_31 a prov:Entity ;
+    nerds:compositeHeight 456 ;
+    nerds:compositeImagePath "output/temp/composite_tick20_31.png" ;
+    nerds:compositeWidth 412 ;
+    nerds:compositeXmpPath "output/temp/composite_tick20_31.xmp" ;
+    nerds:heat nerds:Hot ;
+    nerds:overlayOffsetX -12 ;
+    nerds:overlayOffsetY -56 ;
+    nerds:sourceItem1 nerds:item_29 ;
+    nerds:sourceItem2 nerds:item_21 ;
+    nerds:thermalMass 3 ;
+    dcterms:created 20 ;
+    dcterms:identifier "item_31" ;
+    dcterms:type nerds:CompositeImage ;
+    prov:wasAttributedTo nerds:agent_Compositor ;
+    prov:wasGeneratedBy nerds:activity_Compositor_tick20_item_31 .
+
+nerds:item_5 a prov:Entity ;
+    nerds:heat nerds:Medium ;
+    nerds:keywordList "lord,carlyle,governor,indian,province,type,man,adrienne,beauty,wife,win,love,andrew,fabian,ministry,india,scene,involvi" ;
+    nerds:keywordSource "omdb" ;
+    nerds:thermalMass 5 ;
+    dcterms:created 3 ;
+    dcterms:identifier "item_5" ;
+    dcterms:type nerds:Keywords ;
+    prov:wasAttributedTo nerds:agent_KeywordExtractor ;
+    prov:wasGeneratedBy nerds:activity_KeywordExtractor_tick3_item_5 .
+
+nerds:item_6 a prov:Entity ;
+    nerds:completeness "0.16666666666666666"^^xsd:float ;
+    nerds:critiqueTick 4 ;
+    nerds:heat nerds:Cold ;
+    nerds:inputFingerprint "TitleChunks" ;
+    nerds:issues "missing_palette,missing_layout,missing_typeface,missing_hero_or_composite,missing_icon_or_composite" ;
+    nerds:thermalMass 1 ;
+    dcterms:created 4 ;
+    dcterms:identifier "item_6" ;
+    dcterms:type nerds:Critique ;
+    prov:wasAttributedTo nerds:agent_Critic ;
+    prov:wasGeneratedBy nerds:activity_Critic_tick4_item_6 .
+
+nerds:item_8 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from the Minaret" ;
+    nerds:secondaryTitle "" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "full_title" ;
+    dcterms:created 6 ;
+    dcterms:identifier "item_8" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick6_item_8 .
+
+nerds:item_9 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from" ;
+    nerds:secondaryTitle "the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "two_line" ;
+    dcterms:created 6 ;
+    dcterms:identifier "item_9" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick6_item_9 .
+
+nerds:ColorPalette a skos:Concept ;
+    rdfs:comment "Genre-derived key and accent colors." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Color Palette"@en .
+
+nerds:FoundationalArtifact a skos:Concept ;
+    rdfs:comment "Seed data that everything else derives from." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Foundational Artifact"@en .
+
+nerds:IconImage a skos:Concept ;
+    rdfs:comment "Genre-relevant icon from the Noun Project, composited onto the poster." ;
+    skos:broader nerds:VisualArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Icon Image"@en .
+
+nerds:Layout a skos:Concept ;
+    rdfs:comment "Poster layout template with y-positions and alignment." ;
+    skos:broader nerds:StructuralArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Layout"@en .
+
+nerds:TypographicArtifact a skos:Concept ;
+    rdfs:comment "Title text and typeface selections." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Typographic Artifact"@en .
+
+nerds:agent_Compositor a prov:SoftwareAgent ;
+    rdfs:label "Compositor" .
+
+nerds:agent_KeywordExtractor a prov:SoftwareAgent ;
+    rdfs:label "KeywordExtractor" .
+
+nerds:agent_MoviePicker a prov:SoftwareAgent ;
+    rdfs:label "MoviePicker" .
+
+nerds:agent_TypefacePicker a prov:SoftwareAgent ;
+    rdfs:label "TypefacePicker" .
+
+nerds:item_10 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle """The Voice
+from the""" ;
+    nerds:secondaryTitle "Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "three_line" ;
+    dcterms:created 6 ;
+    dcterms:identifier "item_10" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick6_item_10 .
+
+nerds:item_18 a prov:Entity ;
+    nerds:creditsY "0.92"^^xsd:float ;
+    nerds:heat nerds:Cold ;
+    nerds:imageH "0.35"^^xsd:float ;
+    nerds:imageY "0.0"^^xsd:float ;
+    nerds:layoutName "minimalist" ;
+    nerds:taglineY "0.55"^^xsd:float ;
+    nerds:thermalMass 4 ;
+    nerds:titleAlign "center" ;
+    nerds:titleY "0.38"^^xsd:float ;
+    dcterms:created 10 ;
+    dcterms:identifier "item_18" ;
+    dcterms:type nerds:Layout ;
+    prov:wasAttributedTo nerds:agent_LayoutPicker ;
+    prov:wasGeneratedBy nerds:activity_LayoutPicker_tick10_item_18 .
+
+nerds:item_23 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice from the Minaret" ;
+    nerds:secondaryTitle "" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "full_title" ;
+    dcterms:created 15 ;
+    dcterms:identifier "item_23" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick15_item_23 .
+
+nerds:item_27 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 2 ;
+    nerds:typefaceName "serif-bold" ;
+    nerds:typefaceStyle "serif" ;
+    nerds:typefaceWeight "bold" ;
+    dcterms:created 16 ;
+    dcterms:identifier "item_27" ;
+    dcterms:type nerds:Typeface ;
+    prov:wasAttributedTo nerds:agent_TypefacePicker ;
+    prov:wasGeneratedBy nerds:activity_TypefacePicker_tick16_item_27 .
+
+nerds:item_4 a prov:Entity ;
+    nerds:heat nerds:Cold ;
+    nerds:primaryTitle "The Voice" ;
+    nerds:secondaryTitle "from the Minaret" ;
+    nerds:thermalMass 1 ;
+    nerds:titleStrategy "natural_phrase" ;
+    dcterms:created 2 ;
+    dcterms:identifier "item_4" ;
+    dcterms:type nerds:TitleChunks ;
+    prov:wasAttributedTo nerds:agent_TitleParser ;
+    prov:wasGeneratedBy nerds:activity_TitleParser_tick2_item_4 .
+
+nerds:item_7 a prov:Entity ;
+    nerds:accentColor "#42a58b" ;
+    nerds:heat nerds:Cold ;
+    nerds:keyColor "#354d59" ;
+    nerds:midColor "#3b7972" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 5 ;
+    dcterms:identifier "item_7" ;
+    dcterms:type nerds:ColorPalette ;
+    schema1:genre "drama" ;
+    prov:wasAttributedTo nerds:agent_GenrePalette ;
+    prov:wasGeneratedBy nerds:activity_GenrePalette_tick5_item_7 .
+
+nerds:Critique a skos:Concept ;
+    rdfs:comment "Completeness evaluation with issue list and score." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Critique"@en .
+
+nerds:PosterCritique a skos:Concept ;
+    rdfs:comment "Visual critique of a rendered poster from a specific set of assets." ;
+    skos:broader nerds:MetaArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Poster Critique"@en .
+
+nerds:item_12 a prov:Entity ;
+    nerds:creditsY "0.92"^^xsd:float ;
+    nerds:heat nerds:Cold ;
+    nerds:imageH "0.35"^^xsd:float ;
+    nerds:imageY "0.0"^^xsd:float ;
+    nerds:layoutName "minimalist" ;
+    nerds:taglineY "0.55"^^xsd:float ;
+    nerds:thermalMass 4 ;
+    nerds:titleAlign "center" ;
+    nerds:titleY "0.38"^^xsd:float ;
+    dcterms:created 7 ;
+    dcterms:identifier "item_12" ;
+    dcterms:type nerds:Layout ;
+    prov:wasAttributedTo nerds:agent_LayoutPicker ;
+    prov:wasGeneratedBy nerds:activity_LayoutPicker_tick7_item_12 .
+
+nerds:item_19 a prov:Entity ;
+    nerds:accentColor "#42a579" ;
+    nerds:heat nerds:Cold ;
+    nerds:keyColor "#355359" ;
+    nerds:midColor "#3b7c69" ;
+    nerds:thermalMass 3 ;
+    dcterms:created 11 ;
+    dcterms:identifier "item_19" ;
+    dcterms:type nerds:ColorPalette ;
+    schema1:genre "drama" ;
+    prov:wasAttributedTo nerds:agent_GenrePalette ;
+    prov:wasGeneratedBy nerds:activity_GenrePalette_tick11_item_19 .
+
+nerds:item_21 a prov:Entity ;
+    nerds:heat nerds:Medium ;
+    nerds:iconAttribution "Rupee by Vectorholic from Noun Project" ;
+    nerds:iconId "1054888" ;
+    nerds:iconPngBase64 "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" ;
+    nerds:iconSearchQuery "indian" ;
+    nerds:iconTerm "Rupee" ;
+    nerds:thermalMass 4 ;
+    dcterms:created 13 ;
+    dcterms:identifier "item_21" ;
+    dcterms:type nerds:IconImage ;
+    prov:wasAttributedTo nerds:agent_IconFetcher ;
+    prov:wasGeneratedBy nerds:activity_IconFetcher_tick13_item_21 .
+
+nerds:item_29 a prov:Entity ;
+    nerds:heat nerds:Medium ;
+    nerds:iconAttribution "building by Melissa Gaviria from Noun Project" ;
+    nerds:iconId "4907" ;
+    nerds:iconPngBase64 "iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAYAAACAvzbMAAALG0lEQVR4nO3cT4ztZ13H8e/zO7+ZTm+55U6RggFcdEUKC6VNbkOiGyRNCCJoGjdIwp9UIbH4JybogsQYizExgouaGKoLXIkxV/64aRcWZNEC/klENyRNhAaube+9uX/PnHN+z+OirMhFc7+5cx7m/F6v5czmM/mdPO/nzORMBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADALSi9B5xUv/b0X7zh0rUr76zrVe8pwK1aLGKIsnrzm+4/9wcPvud67zkn1dh7wEl19erVn77cln+9buveU4BbVYeIo/XqyrVrX40IAUkSkKRShmk6WkfdbHpPAW7VUGIR5cZYN633lJNs6D0AgJNJQABIERAAUgQEgBQBASBFQABIEZC04hOEcJKVaPeefvWy94yT7KafRP/VL/zxT11dbx5odarbHnRSlFi87eq0/OQ0Tb2nALeqlBgirh8enP6N9bR6ufecH2dlWAyv2hu/+bn3fOK/f/h7N/0g4XI1vfPGWD9bJx+S+1FqW0cVDziZWosacerS5vqT/p/T/21YlBhX00ci4skf/t6P+CR6mzbrddS1gAC7a3LG/b+GEhFluOlt2d9AAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAlLH3gG0Z9hYRpfSeMRttU6PV2nsGEVGGIcrorrg1rUVdT71XbMUsAjKUYf3GOw+fLFFeatFU5JgNZagXllffdXmzfCAmEelqMcTpxcE377nzVf9YW1WRY1aitBr1tS+sL3y4Rtv583Xnf8AoJYZS1m977Vv/5LGHHn6+95y5eOTc42eGNjxQBaSrYTHE/jh+7a/e/Vuf7L1lLp547qn7zl155gM16hit9Z5zrGZzI7m0vHDQe8OstBlcTk6I5lls1cXlxdmcNbMJCAC3l4AAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAymwCcubgnmXvDbNSYtN7Aq8onsVWHR4czuasGXsPOH4tamt7//rif330g1/89PlWaum9aNcNZVFfvn75wTbV3lNmr001VmV68ENf/sxv1zbN5sLYS2lD+/r5/3h9jTZGtN5zjt3uB6RF1Kh737nx0u9G0Y5taZsarQpIb22qcaXdePvVdvT23ltmo7WobR6v/d0PyA/U9dR7AnTRao22mseBxnZ5SwtAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAioAAkCIgAKQICAApAgJAyth7wLYMe4uIUnrPmI22qdFq7T2DiCjDEGV0V9ya1qKup94rtmL3A1IihhjWbzp4zRPDYjjfalORY1aitJePLv/ilc3ybJtEpKeyGOL0ePDsa+64+x9aeO0ftzKUVqf6uu9sXvpYbXWv957jtvsBiRJDKeufuff+zzz20MPP914zF4+ce/wnSxsEpLOyGGJ/MT775C98/FO9t8zFE889dd8L337m0VrKXrTWe86xms372kvLCwe9N8xKm8Pl5GRonsVWXVxenM1ZM5uAAHB7CQgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkzCYgZw7uWfbeMCslNr0n8IriWWzV4cHhbM6asfeAY9da1Gh7//Lit37zw1/6s/9pNUrvSbtuKKW+eHT5bJtq7ymz16Yaq7I5+5Evfvr3a2uzuTD2UoZo3zj/rXtrtDFa6z3n2O1+QCKitrr33RsXHouiHdvSNjVaFZDe2lTjSluevdpWZ3tvmY3WorZ5vPZnEZCIiLqeek+ALlqt0VbzONDYLm9pAUgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgREABSBASAFAEBIEVAAEgZew/YlmFvEVFK7xmz0TY1Wq29ZxARZRiijO6KW9Na1PXUe8VWzCIgQ5TNmcWpv2/RLvXeMguttOVi9bM3YnV/1NZ7zbwNJQ7K3n8elP2vRmluUFtQWhxeimvvq9F2/nzd+R8wSomhDKufe8MDn3jsoYef7z1nLh459/ifH62n++tq03vKrA3jIu4a73j6b9/3ex/vvWUunnjuqfvOffuZd9eoY7TdvkDN5n3tpeWFg94bZqXN4HJyQjTPYqsuLi/O5qyZTUAAuL0EBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFIEBIAUAQEgRUAASBEQAFJmE5AzB/cse2+YlRKb3hN4RfEsturw4HA2Z83Ye8A21FbHZ7//77/yS3/3hy8MpZTee3Zdq6UerddvabX1njJ7rbZYrtdv+eXP/9H7y9Bmc2HspbbW/vl7//bGGnURsfuv/90PSGtRI/bPry5/KkqZwzP9sdA2NVqtvWfMXttMcW04ekcZh3eEx7EVl4+OorZ5HDS7H5AfqOup9wTootUabaUe3H7e0gKQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIACkCAkCKgACQIiAApAgIAClj7wFsTxmHKIM7A8en1RptU3vPYEsEZCbKuIi7yv5frqbN0xF10XsPu2iY9oc7fv7auHq0babeY9gCAZmJMpS4e++ur/3Ne3/n8723sLvef+5P77y+Xj/aeg9hK/w+Y0amttnvvYHd5jU2LwICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkCAgAKQICQIqAAJAiIACkjDf7YqsxLu7Y2/YWjtFify9au/nzhtullRgX+86OXbLY34t2dPOz46ZffN3hq79yarP59RpTO95pbMuwvyh3l1PP9N7BbvuJgzP/tN+uOzt2yLC/KKdPjV/pvQMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgXv4Xeb5O1Y9rgisAAAAASUVORK5CYII=" ;
+    nerds:iconSearchQuery "ministry" ;
+    nerds:iconTerm "building" ;
+    nerds:thermalMass 4 ;
+    dcterms:created 18 ;
+    dcterms:identifier "item_29" ;
+    dcterms:type nerds:IconImage ;
+    prov:wasAttributedTo nerds:agent_IconFetcher ;
+    prov:wasGeneratedBy nerds:activity_IconFetcher_tick18_item_29 .
+
+nerds:agent_GenrePalette a prov:SoftwareAgent ;
+    rdfs:label "GenrePalette" .
+
+nerds:agent_IconFetcher a prov:SoftwareAgent ;
+    rdfs:label "IconFetcher" .
+
+nerds:agent_LayoutPicker a prov:SoftwareAgent ;
+    rdfs:label "LayoutPicker" .
+
+nerds:item_0 a prov:Entity ;
+    nerds:genreLabel "drama film" ;
+    nerds:heat nerds:Cold ;
+    nerds:thermalMass 5 ;
+    dcterms:created 1 ;
+    dcterms:identifier "item_0" ;
+    dcterms:type nerds:MovieData ;
+    schema1:actor "Lillian Lawrence, Norma Talmadge, Eugene O'Brien, Claire Du Brey, Edwin Stevens" ;
+    schema1:datePublished "1923"^^xsd:gYear ;
+    schema1:director "Frank Lloyd" ;
+    schema1:genre "drama" ;
+    schema1:name "The Voice from the Minaret" ;
+    rdfs:seeAlso <http://www.wikidata.org/entity/Q17698621> ;
+    prov:wasAttributedTo nerds:agent_MoviePicker ;
+    prov:wasGeneratedBy nerds:activity_MoviePicker_tick1_item_0 .
+
+nerds:MetaArtifact a skos:Concept ;
+    rdfs:comment "Evaluation, critique, and completion signals." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Meta Artifact"@en .
+
+nerds:VisualArtifact a skos:Concept ;
+    rdfs:comment "Color, imagery, and post-processing data." ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Visual Artifact"@en .
+
+nerds:agent_Critic a prov:SoftwareAgent ;
+    rdfs:label "Critic" .
+
+nerds:agent_PosterCritic a prov:SoftwareAgent ;
+    rdfs:label "PosterCritic" .
+
+nerds:TitleChunks a skos:Concept ;
+    rdfs:comment "Primary and secondary title text segments." ;
+    skos:broader nerds:TypographicArtifact ;
+    skos:inScheme nerds:PosterArtifact ;
+    skos:prefLabel "Title Chunks"@en .
+
+nerds:PosterArtifact a skos:ConceptScheme ;
+    rdfs:comment "Concept scheme for typed items on the NERDS blackboard." ;
+    skos:prefLabel "Poster Artifact Types"@en .
+
+nerds:agent_TitleParser a prov:SoftwareAgent ;
+    rdfs:label "TitleParser" .
+
