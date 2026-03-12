@@ -708,3 +708,52 @@ The renderer was updated to handle newlines in titles for proper multi-line disp
 - System learns which title strategies work for different genres
 - "A Clockwork Orange" → "A Clockwork" | "Orange" (not "A" | "Clockwork Orange")
 - "In the Mood for Love" → "In the Mood" | "for Love" (natural break)
+
+---
+
+## Week 10 Part 4: Bug Fixes and Quality Improvements
+
+### 1. Title fitting
+
+**Problem:** Long titles could go outside the poster bounds.
+
+**Solution:** Added font size auto-shrinking in render.py:
+- Start at max font size (52pt)
+- Shrink by 4pt increments if title exceeds poster width
+- Minimum font size: 24pt
+- If even minimum doesn't fit, mark title as not fitting
+
+### 2. Composite offsets
+
+**Problem:** Icons were overlapping when composited because offsets were too small.
+
+**Solution:** Updated Compositor to prefer non-overlapping placement:
+- 60% chance: side-by-side placement (no overlap)
+- 30% chance: partial overlap (at most 50%)
+- 10% chance: full random
+
+### 3. Critic approval for final poster
+
+**Problem:** Even composites that failed VisibilityCritic or ContrastCritic could be used in the final poster.
+
+**Solution:** Modified final asset selection in main.py to require:
+- Composite must have passed VisibilityCritic (score >= 0.7)
+- Composite must have passed ContrastCritic (score >= 0.3)
+
+### 4. TitleContrastCritic
+
+**Problem:** Title color might not contrast well with background or composite.
+
+**Solution:** Added TitleContrastCriticNerd that:
+- Compares title color (accent) to background (key) color
+- Also checks distance to composite colors
+- Sets heat based on contrast score (low contrast -> COLD, high -> HOT)
+- Example output: `min_dist=89.0, score=0.59`
+
+### File changes
+
+| File | Change |
+|---|---|
+| render.py | Title font auto-shrink to fit |
+| nerds.py | Composite offset strategy, TitleContrastCriticNerd |
+| main.py | Require critic approval for final assets |

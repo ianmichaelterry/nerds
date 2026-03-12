@@ -325,12 +325,24 @@ def select_nerd(
 # ---------------------------------------------------------------------------
 
 
-def run(seed: int | None = None, max_ticks: int = 50, verbose: bool = False) -> Path:
+def run(
+    seed: int | None = None,
+    max_ticks: int = 80,
+    min_complete_tick: int = 50,
+    verbose: bool = False,
+) -> Path:
     if seed is not None:
         random.seed(seed)
 
     bb = Blackboard()
     nerds = make_all_nerds()
+
+    # Set min_complete_tick for CompletionNerd
+    for nerd in nerds:
+        if nerd.name == "CompletionJudge":
+            setattr(nerd, "min_tick", min_complete_tick)
+            break
+
     shapes_graph = build_shacl_shapes()
     narrator = Narrator()
     output_dir = Path("output")
@@ -395,13 +407,53 @@ def run(seed: int | None = None, max_ticks: int = 50, verbose: bool = False) -> 
         bb.dump()
 
     # --- Build picks from the latest passing PosterCritique (if any) ---
+    # Also require that composites have passed VisibilityCritic and ContrastCritic
     all_critiques = bb.query_items(NERDS.PosterCritique)
     approved = None
+
+    def _composite_passes_critics(composite_node, bb):
+        """Check if a composite has passed visibility and contrast critics."""
+        if not composite_node:
+            return True  # No composite is fine
+
+        # Check VisibilityCritic
+        vis_crits = bb.query_items(NERDS.VisibilityCritique)
+        for vc in vis_crits:
+            comp = bb.get_property(vc, NERDS.targetComposite)
+            if comp and str(comp) == str(composite_node):
+                score = bb.get_property(vc, NERDS.overallScore)
+                if score and float(score) >= 0.7:
+                    break
+        else:
+            # No passing visibility critique - reject
+            print(f"  [Render] Composite has no passing VisibilityCritic")
+            return False
+
+        # Check ContrastCritic
+        con_crits = bb.query_items(NERDS.ContrastCritique)
+        for cc in con_crits:
+            comp = bb.get_property(cc, NERDS.targetComposite)
+            if comp and str(comp) == str(composite_node):
+                score = bb.get_property(cc, NERDS.overallScore)
+                if score and float(score) >= 0.3:
+                    break
+        else:
+            # No passing contrast critique - reject
+            print(f"  [Render] Composite has no passing ContrastCritic")
+            return False
+
+        return True
+
     for c in all_critiques:
         passes = bb.get_property(c, NERDS.passes)
         if passes and str(passes).lower() == "true":
             score = float(bb.get_property(c, NERDS.critiqueScore) or 0)
             if score >= 0.5:
+                # Check if composite has passed critics
+                composite = bb.get_property(c, NERDS.usedComposite)
+                if composite and not _composite_passes_critics(composite, bb):
+                    continue
+
                 if approved is None:
                     approved = c
                 else:
@@ -526,12 +578,23 @@ def main():
         description="Semantic NERDS: Blackboard Poster Generator (Week 8)"
     )
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
-    parser.add_argument("--max-ticks", type=int, default=50, help="Maximum ticks")
+    parser.add_argument("--max-ticks", type=int, default=80, help="Maximum ticks")
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Show tick-by-tick log"
     )
+    parser.add_argument(
+        "--min-complete-tick",
+        type=int,
+        default=50,
+        help="Tick when completion can be declared",
+    )
     args = parser.parse_args()
-    run(seed=args.seed, max_ticks=args.max_ticks, verbose=args.verbose)
+    run(
+        seed=args.seed,
+        max_ticks=args.max_ticks,
+        min_complete_tick=args.min_complete_tick,
+        verbose=args.verbose,
+    )
 
 
 if __name__ == "__main__":

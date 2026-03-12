@@ -302,13 +302,11 @@ def render_poster(bb: Blackboard, output_path: Path, picks: dict | None = None) 
                     print(f"  [Render] Icon composite failed: {e}")
 
     # --- Title ---
+    title_fits = True
     if title_node:
         primary = str(bb.get_property(title_node, NERDS.primaryTitle) or "").upper()
         secondary = str(bb.get_property(title_node, NERDS.secondaryTitle) or "").upper()
         title_y = int(float(layout["title_y"]) * POSTER_H)
-
-        font_big = _get_font(52, bold=True)
-        font_small = _get_font(26)
 
         primary_lines = primary.split("\n") if "\n" in primary else [primary]
 
@@ -316,7 +314,35 @@ def render_poster(bb: Blackboard, output_path: Path, picks: dict | None = None) 
         line_height = 55
         total_height = len(primary_lines) * line_height
 
-        # Get width of widest line for centering
+        # Try to fit title: start at max size, shrink if needed
+        max_font_size = 52
+        min_font_size = 24
+        font_size = max_font_size
+
+        MARGIN = 40
+        max_allowed_width = POSTER_W - (2 * MARGIN)
+
+        while font_size >= min_font_size:
+            font_big = _get_font(font_size, bold=True)
+
+            # Get width of widest line for centering
+            max_width = 0
+            for line in primary_lines:
+                bbox = draw.textbbox((0, 0), line, font=font_big)
+                max_width = max(max_width, bbox[2] - bbox[0])
+
+            if max_width <= max_allowed_width:
+                break
+            font_size -= 4
+
+        if font_size < min_font_size:
+            title_fits = False
+            font_size = min_font_size
+            font_big = _get_font(font_size, bold=True)
+
+        line_height = int(font_size * 1.1)
+
+        # Recalculate with final font size
         max_width = 0
         for line in primary_lines:
             bbox = draw.textbbox((0, 0), line, font=font_big)
@@ -325,7 +351,7 @@ def render_poster(bb: Blackboard, output_path: Path, picks: dict | None = None) 
         if layout["title_align"] == "center":
             tx = (POSTER_W - max_width) // 2
         else:
-            tx = 40
+            tx = MARGIN
 
         # Drop shadow for legibility
         shadow_offset = 2
@@ -341,13 +367,15 @@ def render_poster(bb: Blackboard, output_path: Path, picks: dict | None = None) 
             )
             draw.text((tx, line_y), line, fill=accent_color, font=font_big)
 
+        font_small = _get_font(int(font_size * 0.5))
+
         if secondary:
             bbox2 = draw.textbbox((0, 0), secondary, font=font_small)
             tw2 = bbox2[2] - bbox2[0]
             if layout["title_align"] == "center":
                 tx2 = (POSTER_W - tw2) // 2
             else:
-                tx2 = 40
+                tx2 = MARGIN
             sub_y = title_y + total_height + 10
             sub_color = tuple(min(255, c + 30) for c in accent_color)
             draw.text((tx2, sub_y), secondary, fill=sub_color, font=font_small)

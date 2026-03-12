@@ -1998,10 +1998,54 @@ class CompositeNerd(Nerd):
         with Image.open(overlay_path) as oi:
             overlay_w, overlay_h = oi.size
 
-        # Random offset: where overlay's top-left goes relative to base's
-        # top-left.  Full range from no-overlap top-left to bottom-right.
-        offset_x = random.randint(-overlay_w, base_w)
-        offset_y = random.randint(-overlay_h, base_h)
+        # Offset strategy: prefer non-overlapping placement
+        # 60% chance: place side-by-side (at edge of base, no overlap)
+        # 30% chance: partial overlap (at most 50% of smaller dimension)
+        # 10% chance: full random (original behavior)
+
+        # If overlay is larger than base in both dimensions, shrink it to fit
+        if overlay_w > base_w or overlay_h > base_h:
+            scale = min(base_w / overlay_w * 0.9, base_h / overlay_h * 0.9, 1.0)
+            if scale < 1.0:
+                new_overlay_w = int(overlay_w * scale)
+                new_overlay_h = int(overlay_h * scale)
+                try:
+                    with Image.open(overlay_path) as oi:
+                        oi = oi.resize(
+                            (new_overlay_w, new_overlay_h), Image.Resampling.LANCZOS
+                        )
+                        oi.save(overlay_path)
+                    overlay_w, overlay_h = new_overlay_w, new_overlay_h
+                    print(
+                        f"  [Compositor] Shrunk overlay to {overlay_w}x{overlay_h} to fit base"
+                    )
+                except Exception as e:
+                    print(f"  [Compositor] Failed to resize overlay: {e}")
+                    return []
+
+        roll = random.random()
+
+        def safe_randint(low, high):
+            """Handle cases where low > high (overlay larger than base)."""
+            if low > high:
+                return (low + high) // 2
+            return random.randint(low, high)
+
+        if roll < 0.6:
+            if base_w > base_h:
+                offset_x = random.choice([-overlay_w - 10, base_w + 10])
+                offset_y = safe_randint(0, base_h - overlay_h)
+            else:
+                offset_x = safe_randint(0, base_w - overlay_w)
+                offset_y = random.choice([-overlay_h - 10, base_h + 10])
+        elif roll < 0.9:
+            max_overlap_x = int(overlay_w * 0.5)
+            max_overlap_y = int(overlay_h * 0.5)
+            offset_x = safe_randint(-max_overlap_x, base_w - overlay_w + max_overlap_x)
+            offset_y = safe_randint(-max_overlap_y, base_h - overlay_h + max_overlap_y)
+        else:
+            offset_x = safe_randint(-overlay_w, base_w)
+            offset_y = safe_randint(-overlay_h, base_h)
 
         # Compute a canvas large enough to contain both images
         left = min(0, offset_x)
@@ -2212,6 +2256,92 @@ class ContrastCriticNerd(Nerd):
             NERDS.critiqueTick: Literal(bb.tick, datatype=XSD.integer),
         }
         return [(NERDS.ContrastCritique, props, Heat.MEDIUM, 1)]
+
+
+def _hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """Convert hex color to RGB tuple."""
+    hex_color = hex_color.lstrip("#")
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+    return (r, g, b)
+
+
+def _color_distance(c1: tuple, c2: tuple) -> float:
+    """Compute Euclidean distance between two RGB colors."""
+    return float(np.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2))))
+
+
+class TitleContrastCriticNerd(Nerd):
+    """Scores how well the title color contrasts with the background.
+
+    Uses WCAG-like contrast ratio: compares title color (accent) to background (key).
+    Also checks if title overlaps with composite - if so, considers composite colors.
+
+    Low contrast -> title heat set to COLD.
+    High contrast -> title heat set to HOT.
+    """
+
+    def can_run(self, bb: Blackboard) -> bool:
+        if not super().can_run(bb):
+            return False
+        return bb.has(NERDS.ColorPalette) and bb.has(NERDS.TitleChunks)
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        palette = bb.pick(NERDS.ColorPalette)
+        title = bb.pick(NERDS.TitleChunks)
+
+        if not palette or not title:
+            return []
+
+        key_hex = str(bb.get_property(palette, NERDS.keyColor) or "#1e1e28")
+        accent_hex = str(bb.get_property(palette, NERDS.accentColor) or "#cc6644")
+
+        key_rgb = _hex_to_rgb(key_hex)
+        accent_rgb = _hex_to_rgb(accent_hex)
+
+        # Compute distance between title color and background
+        dist = _color_distance(key_rgb, accent_rgb)
+
+        # Also check if there are composites with different colors
+        composites = bb.query_items(NERDS.CompositeImage)
+        composite_colors = []
+        for comp in composites:
+            comp_palette = bb.get_property(comp, NERDS.usedPalette)
+            if comp_palette:
+                comp_key = bb.get_property(comp_palette, NERDS.keyColor)
+                comp_accent = bb.get_property(comp_palette, NERDS.accentColor)
+                if comp_key:
+                    composite_colors.append(_hex_to_rgb(str(comp_key)))
+                if comp_accent:
+                    composite_colors.append(_hex_to_rgb(str(comp_accent)))
+
+        # Minimum distance to any background color
+        min_dist = dist
+        for cc in composite_colors:
+            d = _color_distance(accent_rgb, cc)
+            min_dist = min(min_dist, d)
+
+        # Score: 0-1 based on distance (want > 100 for good contrast)
+        score = min(1.0, min_dist / 150.0)
+
+        # Set heat based on score
+        if score < 0.3:
+            bb.set_heat(title, Heat.COLD)
+            bb.set_heat(palette, Heat.COLD)
+        elif score >= 0.6:
+            bb.set_heat(title, Heat.HOT)
+            bb.set_heat(palette, Heat.HOT)
+
+        print(f"  [TitleContrastCritic] min_dist={min_dist:.1f}, score={score:.2f}")
+
+        props = {
+            NERDS.critiquedItem: title,
+            NERDS.contrastScore: Literal(score, datatype=XSD.float),
+            NERDS.minPairwiseDistance: Literal(min_dist, datatype=XSD.float),
+            NERDS.critiqueTick: Literal(bb.tick, datatype=XSD.integer),
+        }
+        return [(NERDS.TitleContrastCritique, props, Heat.MEDIUM, 1)]
 
 
 class CritiqueNerd(Nerd):
@@ -2715,6 +2845,11 @@ def make_all_nerds() -> list[Nerd]:
             heat=Heat.MEDIUM,
             cooldown_rate=2,
             shacl_shape=NERDS.ContrastCritiqueShape,
+        ),
+        TitleContrastCriticNerd(
+            name="TitleContrastCritic",
+            heat=Heat.MEDIUM,
+            cooldown_rate=2,
         ),
         CritiqueNerd(
             name="Critic",
