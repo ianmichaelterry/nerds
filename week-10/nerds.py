@@ -60,7 +60,7 @@ def _input_fingerprint(items: list[URIRef | None]) -> str:
 
 _BAYLEAF_KEY_PATH = os.path.expanduser("~/.tokens/bayleaf-api")
 _BAYLEAF_BASE = "https://api.bayleaf.dev/v1"
-_BAYLEAF_MODEL = "z-ai/glm-5"
+_BAYLEAF_MODEL = "openai/gpt-4o-mini"
 
 
 def _get_bayleaf_key() -> str | None:
@@ -72,13 +72,16 @@ def _get_bayleaf_key() -> str | None:
 
 
 def _call_llm_critique(
-    movie_title: str, movie_genre: str, director: str, poster_description: str
+    movie_title: str,
+    movie_genre: str,
+    director: str,
+    poster_description: str,
+    image_path: str | None = None,
 ) -> dict | None:
     """
-    Submit a poster description to the Bayleaf LLM for critique.
+    Submit a poster image (or description) to the Bayleaf LLM for critique.
 
-    Since Bayleaf doesn't support vision in the chat completions API,
-    we send a text description of the poster components instead.
+    Uses vision if image_path is provided, otherwise falls back to text description.
 
     Returns a dict with:
       - passes: bool
@@ -89,6 +92,7 @@ def _call_llm_critique(
     """
     import re
     import json
+    import base64
 
     api_key = _get_bayleaf_key()
     if not api_key:
@@ -118,12 +122,46 @@ Respond with a JSON object (no other text):
 
 Be harsh but fair. If there are significant problems, passes should be false."""
 
-    payload = {
-        "model": _BAYLEAF_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.3,
-        "max_tokens": 800,
-    }
+    if image_path and Path(image_path).exists():
+        try:
+            with open(image_path, "rb") as f:
+                image_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+            payload = {
+                "model": _BAYLEAF_MODEL,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_b64}"
+                                },
+                            },
+                        ],
+                    }
+                ],
+                "temperature": 0.3,
+                "max_tokens": 800,
+            }
+            print(f"  [PosterCritic] Sending image to LLM for vision-based critique...")
+        except Exception as e:
+            print(f"  [PosterCritic] Failed to load image: {e}, falling back to text")
+            payload = {
+                "model": _BAYLEAF_MODEL,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.3,
+                "max_tokens": 800,
+            }
+    else:
+        payload = {
+            "model": _BAYLEAF_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens": 800,
+        }
 
     try:
         resp = requests.post(
@@ -441,6 +479,216 @@ def _fetch_icon(term: str, accent_color: str) -> dict | None:
         }
     except Exception as e:
         print(f"  [IconNerd] Noun Project fetch failed ({e})")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Wikidata SPARQL (actor images)
+# ---------------------------------------------------------------------------
+
+_WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
+
+_WIKI_HEADERS = {
+    "User-Agent": "NERDS-PosterGenerator/1.0 (academic project; contact@example.org)"
+}
+
+
+def _fetch_actor_image(movie_node: URIRef, bb: Blackboard) -> dict | None:
+    """
+    Query Wikidata for an actor associated with the movie and fetch their portrait.
+
+    Returns dict with 'image_data', 'actor_name', 'wikidata_id' or None on failure.
+    """
+    movie_uri = str(movie_node)
+
+    query = f"""
+    SELECT ?actor ?actorName ?image WHERE {{
+        <{movie_uri}> ?p ?statement .
+        ?statement ps:P1610 ?actor .
+        ?actor rdfs:label ?actorName FILTER(LANG(?actorName) = "en") .
+        OPTIONAL {{ ?actor wdt:P18 ?image . }}
+    }}
+    LIMIT 20
+    """
+
+    try:
+        resp = requests.get(
+            _WIKIDATA_SPARQL,
+            params={"query": query, "format": "json"},
+            headers=_WIKI_HEADERS,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        bindings = data.get("results", {}).get("bindings", [])
+
+        # Filter to only those with images
+        with_images = [b for b in bindings if "image" in b]
+
+        if not with_images:
+            return None
+
+        # Pick one at random
+        choice = random.choice(with_images)
+        actor_name = choice.get("actorName", {}).get("value", "Unknown")
+        image_url = choice.get("image", {}).get("value", "")
+
+        # Download the image
+        if image_url:
+            img_resp = requests.get(image_url, headers=_WIKI_HEADERS, timeout=30)
+            img_resp.raise_for_status()
+
+            # PIL to convert to PNG if needed
+            img = Image.open(BytesIO(img_resp.content))
+            if img.mode != "RGBA":
+                img = img.convert("RGBA")
+
+            # Scale down to reasonable size (max 400px)
+            max_size = 400
+            scale = min(max_size / img.width, max_size / img.height, 1.0)
+            if scale < 1.0:
+                new_w = int(img.width * scale)
+                new_h = int(img.height * scale)
+                img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+            buf = BytesIO()
+            img.save(buf, format="PNG")
+            image_data = buf.getvalue()
+
+            return {
+                "image_data": image_data,
+                "actor_name": actor_name,
+                "source_url": image_url,
+            }
+    except Exception as e:
+        print(f"  [ActorImageNerd] Wikidata fetch failed: {e}")
+
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Wikimedia Commons API (keyword images)
+# ---------------------------------------------------------------------------
+
+_WIKIMEDIA_API = "https://commons.wikimedia.org/w/api.php"
+
+
+def _search_wikimedia_images(search_term: str, limit: int = 15) -> list[dict]:
+    """
+    Search Wikimedia Commons for images matching a term.
+
+    Returns list of dicts with 'title', 'url', 'thumburl'.
+    """
+    try:
+        resp = requests.get(
+            _WIKIMEDIA_API,
+            params={
+                "action": "query",
+                "format": "json",
+                "list": "search",
+                "srsearch": search_term,
+                "srlimit": limit,
+                "srnamespace": 6,  # File namespace
+            },
+            headers=_WIKI_HEADERS,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        pages = data.get("query", {}).get("search", [])
+
+        if not pages:
+            return []
+
+        # Get file info for top results
+        titles = [p["title"] for p in pages[:limit]]
+
+        # Fetch file info
+        resp2 = requests.get(
+            _WIKIMEDIA_API,
+            params={
+                "action": "query",
+                "format": "json",
+                "titles": "|".join(titles),
+                "prop": "imageinfo",
+                "iiprop": "url|size",
+                "iiurlwidth": 400,
+            },
+            headers=_WIKI_HEADERS,
+            timeout=15,
+        )
+        resp2.raise_for_status()
+        data2 = resp2.json()
+
+        results = []
+        pages2 = data2.get("query", {}).get("pages", {})
+        for page_id, page_data in pages2.items():
+            info = page_data.get("imageinfo", [{}])[0]
+            if info:
+                results.append(
+                    {
+                        "title": page_data.get("title", ""),
+                        "url": info.get("url", ""),
+                        "thumb_url": info.get("thumburl", ""),
+                        "width": info.get("width", 0),
+                        "height": info.get("height", 0),
+                    }
+                )
+
+        return results[:10]
+
+    except Exception as e:
+        print(f"  [WikiMediaNerd] Search failed: {e}")
+        return []
+
+
+def _fetch_wikimedia_image(search_term: str) -> dict | None:
+    """
+    Search and download an image from Wikimedia Commons.
+
+    Returns dict with 'image_data', 'title', 'attribution' or None.
+    """
+    results = _search_wikimedia_images(search_term)
+
+    if not results:
+        return None
+
+    # Pick one from the top results
+    result = random.choice(results[:5])
+
+    try:
+        # Fetch the image
+        img_resp = requests.get(result["thumb_url"], headers=_WIKI_HEADERS, timeout=30)
+        img_resp.raise_for_status()
+
+        img = Image.open(BytesIO(img_resp.content))
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+
+        # Scale down if too large
+        max_size = 400
+        scale = min(max_size / img.width, max_size / img.height, 1.0)
+        if scale < 1.0:
+            new_w = int(img.width * scale)
+            new_h = int(img.height * scale)
+            img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        image_data = buf.getvalue()
+
+        # Attribution required by Commons
+        attribution = f"{result['title']} - Wikimedia Commons"
+
+        return {
+            "image_data": image_data,
+            "title": result["title"],
+            "attribution": attribution,
+            "source_url": result["url"],
+        }
+
+    except Exception as e:
+        print(f"  [WikiMediaNerd] Download failed: {e}")
         return None
 
 
@@ -1043,6 +1291,15 @@ def _materialize_image(bb: Blackboard, item: URIRef, temp_dir: Path) -> Path | N
         if p and Path(p).exists():
             return Path(p)
         return None
+
+    if item_type == NERDS.ActorImage or item_type == NERDS.WikiMediaImage:
+        b64 = str(bb.get_property(item, NERDS.actorImageData) or "")
+        if not b64:
+            return None
+        path = temp_dir / f"mat_{item_id}.png"
+        if not path.exists():
+            path.write_bytes(base64.b64decode(b64))
+        return path
 
     return None
 
@@ -1922,6 +2179,101 @@ class IconNerd(Nerd):
         return []
 
 
+class ActorImageNerd(Nerd):
+    """Fetches an actor portrait from Wikidata for the movie.
+
+    Queries Wikidata for actors with images associated with the movie,
+    picks one at random, and downloads their portrait.
+    """
+
+    def can_run(self, bb: Blackboard) -> bool:
+        return super().can_run(bb) and bb.has(NERDS.MovieData)
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        movie = bb.pick(NERDS.MovieData)
+        if not movie:
+            return []
+
+        actor_data = _fetch_actor_image(movie, bb)
+
+        if not actor_data:
+            print(f"  [ActorImageNerd] No actor images found for this movie")
+            return []
+
+        print(f"  [ActorImageNerd] Got actor portrait: {actor_data['actor_name']}")
+
+        image_data_b64 = base64.b64encode(actor_data["image_data"]).decode("utf-8")
+
+        props = {
+            NERDS.actorImageData: Literal(image_data_b64),
+            NERDS.actorName: Literal(actor_data["actor_name"]),
+            NERDS.actorImageSource: Literal(actor_data["source_url"]),
+        }
+        return [(NERDS.ActorImage, props, Heat.HOT, 3)]
+
+
+class WikiMediaNerd(Nerd):
+    """Searches Wikimedia Commons for relevant images.
+
+    Uses either actor names from the movie or keywords to search,
+    then downloads one of the top results.
+    """
+
+    def can_run(self, bb: Blackboard) -> bool:
+        return super().can_run(bb) and bb.has(NERDS.MovieData)
+
+    def run(self, bb: Blackboard) -> list[tuple[URIRef, dict, Heat, int]]:
+        movie = bb.pick(NERDS.MovieData)
+        if not movie:
+            return []
+
+        movie_title = str(bb.get_property(movie, SCHEMA.name) or "")
+        actors = bb.get_property(movie, SCHEMA.actor)
+
+        search_terms = []
+
+        # Try actor names first
+        if actors:
+            actor_str = str(actors)
+            actor_list = [a.strip() for a in actor_str.split(",")[:3]]
+            search_terms.extend(actor_list)
+
+        # Add keywords if available
+        kw_item = bb.pick(NERDS.Keywords)
+        if kw_item:
+            kw_str = str(bb.get_property(kw_item, NERDS.keywordList) or "")
+            keywords = [k.strip() for k in kw_str.split(",")[:5]]
+            search_terms.extend(keywords)
+
+        if not search_terms:
+            return []
+
+        # Try each search term until we get a result
+        random.shuffle(search_terms)
+
+        for term in search_terms[:5]:
+            print(f"  [WikiMediaNerd] Searching Commons for: {term}")
+            img_data = _fetch_wikimedia_image(term)
+
+            if img_data:
+                print(f"  [WikiMediaNerd] Got image: {img_data['title']}")
+
+                image_data_b64 = base64.b64encode(img_data["image_data"]).decode(
+                    "utf-8"
+                )
+
+                props = {
+                    NERDS.actorImageData: Literal(image_data_b64),
+                    NERDS.actorName: Literal(img_data["title"]),
+                    NERDS.actorImageSource: Literal(img_data["source_url"]),
+                    NERDS.wikiMediaSearchTerm: Literal(term),
+                }
+                return [(NERDS.WikiMediaImage, props, Heat.HOT, 3)]
+
+        print(f"  [WikiMediaNerd] No images found for any search term")
+        return []
+
+
 class GrainNerd(Nerd):
     """Decides on post-processing effects."""
 
@@ -1956,7 +2308,13 @@ class CompositeNerd(Nerd):
     merged into the new sidecar.
     """
 
-    _IMAGE_TYPES = [NERDS.IconImage, NERDS.HeroImage, NERDS.CompositeImage]
+    _IMAGE_TYPES = [
+        NERDS.IconImage,
+        NERDS.HeroImage,
+        NERDS.CompositeImage,
+        NERDS.ActorImage,
+        NERDS.WikiMediaImage,
+    ]
 
     def can_run(self, bb: Blackboard) -> bool:
         if not super().can_run(bb):
@@ -2648,7 +3006,7 @@ class PosterCriticNerd(Nerd):
         )
 
         llm_result = _call_llm_critique(
-            movie_title, movie_genre, director, poster_description
+            movie_title, movie_genre, director, poster_description, str(temp_path)
         )
 
         passes = True
@@ -2821,6 +3179,16 @@ def make_all_nerds() -> list[Nerd]:
             heat=Heat.HOT,
             cooldown_rate=5,
             shacl_shape=NERDS.IconShape,
+        ),
+        ActorImageNerd(
+            name="ActorImage",
+            heat=Heat.HOT,
+            cooldown_rate=10,
+        ),
+        WikiMediaNerd(
+            name="WikiMediaSearch",
+            heat=Heat.HOT,
+            cooldown_rate=10,
         ),
         GrainNerd(
             name="GrainEffect",

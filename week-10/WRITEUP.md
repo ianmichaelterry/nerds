@@ -757,3 +757,40 @@ The renderer was updated to handle newlines in titles for proper multi-line disp
 | render.py | Title font auto-shrink to fit |
 | nerds.py | Composite offset strategy, TitleContrastCriticNerd |
 | main.py | Require critic approval for final assets |
+
+---
+
+## Week 10 Part 5: Vision-Enabled LLM Critique & New Image Nerds
+
+### Vision-enabled poster critique
+
+- Discovered that `z-ai/glm-5`, `qwen/qwen3.5-122b-a10b`, and `google/gemini-3.1-flash-image-preview` don't support vision in Bayleaf's chat completions API
+- Tested with `openai/gpt-4o-mini` - **it works!**
+- Updated `_call_llm_critique()` to send base64-encoded images to the LLM
+- Now provides actual visual critique instead of text-only descriptions
+
+### New image-fetching nerds
+
+**ActorImageNerd:**
+- Queries Wikidata SPARQL endpoint for actors in the movie
+- Fetches actor portrait images (P18 property)
+- Scales images to max 400px
+
+**WikiMediaNerd:**
+- Searches Wikimedia Commons API for actor names or keywords
+- Downloads and scales images to max 400px
+- Added User-Agent header to fix 403 errors
+
+### Other changes
+
+- Increased default max ticks to 80, completion min tick to 50
+- Fixed composite overlay shrinking when overlay > base
+- Fixed empty range error in composite offsets
+
+### File changes
+
+| File | Change |
+|---|---|
+| nerds.py | Vision-enabled critique, ActorImageNerd, WikiMediaNerd, new image types |
+| vocabulary.py | Added ActorImage, WikiMediaImage concepts |
+| main.py | Added --min-complete-tick argument |
